@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUmpRequest;
+use App\Http\Requests\UpdateUmpRequest;
 use App\Models\Ump;
 use Illuminate\Http\Request;
 
 class UmpController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $query = Ump::with('provinsi');
@@ -30,7 +29,25 @@ class UmpController extends Controller
             });
         }
 
-        $data = $query->orderBy('tahun', 'desc')->orderBy('provinsi_id', 'asc')->get();
+        $query->orderBy('tahun', 'desc')->orderBy('provinsi_id', 'asc');
+
+        if ($request->filled('per_page')) {
+            $paginated = $query->paginate((int) $request->per_page);
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Daftar data UMP berhasil diambil',
+                'data'    => $paginated->items(),
+                'meta'    => [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page'    => $paginated->lastPage(),
+                    'per_page'     => $paginated->perPage(),
+                    'total'        => $paginated->total(),
+                ],
+            ], 200);
+        }
+
+        $data = $query->get();
 
         return response()->json([
             'status'  => 'success',
@@ -39,10 +56,7 @@ class UmpController extends Controller
         ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreUmpRequest $request)
     {
         $ump = Ump::create($request->validated());
         $ump->load('provinsi');
@@ -54,9 +68,6 @@ class UmpController extends Controller
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Ump $ump)
     {
         $ump->load('provinsi');
@@ -68,10 +79,7 @@ class UmpController extends Controller
         ], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Ump $ump)
+    public function update(UpdateUmpRequest $request, Ump $ump)
     {
         $ump->update($request->validated());
         $ump->load('provinsi');
@@ -83,9 +91,6 @@ class UmpController extends Controller
         ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Ump $ump)
     {
         $ump->delete();
