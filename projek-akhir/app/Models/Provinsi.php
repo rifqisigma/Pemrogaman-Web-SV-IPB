@@ -10,6 +10,6 @@ class Provinsi extends Model
 
     public function umps()
     {
-        return $this->hasManu(Ump::class);
+        return $this->hasMany(Ump::class);
     }
 }
