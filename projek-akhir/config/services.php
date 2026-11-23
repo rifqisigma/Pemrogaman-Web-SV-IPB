@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'apiindonesia' => [
+        'key' => env('API_INDONESIA_KEY'),
+        'url' => env('API_INDONESIA_URL', 'https://use.apiindonesia.id/api/v1'),
+    ],
+
 ];
