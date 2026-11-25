@@ -2,6 +2,73 @@
 
 @section('title', 'Dashboard Analisis UMP')
 
+@push('styles')
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<style>
+    /* Custom Styling DataTables agar menyatu dengan tema Tactile NationalWage */
+    .dataTables_wrapper .dataTables_filter input {
+        border: 2px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.4rem 0.85rem;
+        background-color: #f8fafc;
+        font-size: 0.875rem;
+        margin-left: 0.5rem;
+        outline: none;
+        transition: all 0.15s ease;
+    }
+    .dataTables_wrapper .dataTables_filter input:focus {
+        background-color: #ffffff;
+        border-color: #16a34a;
+    }
+    .dataTables_wrapper .dataTables_length select {
+        border: 2px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.35rem 0.65rem;
+        background-color: #f8fafc;
+        font-weight: 700;
+        color: #334155;
+        outline: none;
+    }
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 1rem;
+        font-size: 0.8125rem;
+        font-weight: 700;
+        color: #475569;
+    }
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        margin-top: 1rem;
+        font-size: 0.8125rem;
+        font-weight: 700;
+        color: #475569;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        border-radius: 0.75rem !important;
+        border: 2px solid #e2e8f0 !important;
+        background: #ffffff !important;
+        color: #334155 !important;
+        font-weight: 700 !important;
+        padding: 0.3rem 0.75rem !important;
+        margin-left: 0.25rem !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: #16a34a !important;
+        border-color: #15803d !important;
+        color: #ffffff !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        opacity: 0.45;
+        pointer-events: none;
+    }
+    table.dataTable.no-footer {
+        border-bottom: 2px solid #e2e8f0;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="space-y-6">
     <!-- Header & Filter Tahun -->
@@ -151,22 +218,20 @@
         </div>
     </div>
 
-    <!-- Tabel Data Lengkap + Search + Pagination -->
+    <!-- Tabel Data Lengkap dengan DataTables -->
     <div class="card-tactile p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
             <div>
                 <h3 class="text-base font-extrabold text-slate-800">Daftar Lengkap UMP Seluruh Provinsi</h3>
-                <p class="text-xs text-slate-500">Gunakan kolom pencarian untuk menyaring provinsi secara langsung</p>
+                <p class="text-xs text-slate-500">Gunakan fitur pencarian, pengurutan kolom, dan paginasi interaktif DataTables</p>
             </div>
-            <div class="relative w-full sm:w-72">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input type="text" id="search-provinsi" placeholder="Cari nama provinsi..." 
-                       class="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-9 pr-4 py-2 text-sm font-medium text-slate-700 focus:bg-white focus:border-emerald-500 focus:outline-none transition">
-            </div>
+            <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200 self-start sm:self-auto">
+                <i class="fa-solid fa-table mr-1.5"></i> DataTables Aktif
+            </span>
         </div>
 
-        <div class="overflow-x-auto rounded-xl border border-slate-200">
-            <table class="w-full text-left border-collapse">
+        <div class="overflow-x-auto">
+            <table id="tabelUmpDataTable" class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50 border-b-2 border-slate-200 text-xs font-extrabold uppercase tracking-wider text-slate-500">
                         <th class="py-3.5 px-4 w-16">No</th>
@@ -175,32 +240,24 @@
                         <th class="py-3.5 px-4 text-right">Nominal UMP</th>
                     </tr>
                 </thead>
-                <tbody id="tabel-ump-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
-                    <tr>
-                        <td colspan="4" class="py-8 text-center text-slate-400">Memuat data UMP...</td>
-                    </tr>
-                </tbody>
+                <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-700"></tbody>
             </table>
-        </div>
-
-        <!-- Pagination Controls -->
-        <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-bold text-slate-600">
-            <div id="pagination-info">Menampilkan data...</div>
-            <div id="pagination-buttons" class="flex items-center gap-2"></div>
         </div>
     </div>
 </div>
 @endsection
 
 @push('scripts')
+<!-- jQuery & DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
 <script>
     let chartTop10Instance = null;
     let chartBottom10Instance = null;
     let chartTrenNasionalInstance = null;
     let chartTrenProvinsiInstance = null;
-
-    let currentPage = 1;
-    let searchTimeout = null;
+    let umpDataTable = null;
 
     const formatRupiah = (angka) => {
         return new Intl.NumberFormat('id-ID', {
@@ -216,6 +273,12 @@
                item.nama_provinsi ||
                (typeof item.provinsi === 'string' ? item.provinsi : null) ||
                null;
+    };
+
+    const getNilaiUmp = (item) => {
+        if (!item) return 0;
+        const val = item.nominal ?? item.rata_rata ?? item.rata_rata_ump ?? item.ump_nominal ?? item.ump ?? item.nilai ?? 0;
+        return Number(val) || 0;
     };
 
     // 1. Load KPI Statistik (/api/ump/statistik)
@@ -258,7 +321,6 @@
             const top10 = data.top_10 || [];
             const bottom10 = data.bottom_10 || [];
 
-            // Isi nama provinsi tertinggi & terendah jika di /api/ump/statistik belum muncul
             const spanTertinggi = document.getElementById('stat-provinsi-tertinggi').querySelector('span');
             if (top10.length > 0 && (spanTertinggi.textContent === '-' || !spanTertinggi.textContent.trim())) {
                 spanTertinggi.textContent = getNamaProvinsi(top10[0]) || '-';
@@ -278,7 +340,7 @@
                     labels: top10.map(item => getNamaProvinsi(item)),
                     datasets: [{
                         label: 'UMP (Rp)',
-                        data: top10.map(item => item.nominal),
+                        data: top10.map(item => getNilaiUmp(item)),
                         backgroundColor: '#16a34a',
                         borderRadius: 8
                     }]
@@ -305,7 +367,7 @@
                     labels: bottom10.map(item => getNamaProvinsi(item)),
                     datasets: [{
                         label: 'UMP (Rp)',
-                        data: bottom10.map(item => item.nominal),
+                        data: bottom10.map(item => getNilaiUmp(item)),
                         backgroundColor: '#0284c7',
                         borderRadius: 8
                     }]
@@ -335,16 +397,20 @@
             const json = await res.json();
             const data = json.data || json;
 
-            if (!provinsiId && Array.isArray(data)) {
+            if (!provinsiId) {
+                const listNasional = Array.isArray(data)
+                    ? data
+                    : (data.tren_nasional || data.nasional || data.tren || Object.values(data).find(v => Array.isArray(v)) || []);
+
                 const ctxNasional = document.getElementById('chartTrenNasional').getContext('2d');
                 if (chartTrenNasionalInstance) chartTrenNasionalInstance.destroy();
                 chartTrenNasionalInstance = new Chart(ctxNasional, {
                     type: 'line',
                     data: {
-                        labels: data.map(d => d.tahun),
+                        labels: listNasional.map(d => d.tahun),
                         datasets: [{
                             label: 'Rata-rata Nasional',
-                            data: data.map(d => d.rata_rata || d.nominal),
+                            data: listNasional.map(d => getNilaiUmp(d)),
                             borderColor: '#16a34a',
                             backgroundColor: 'rgba(22, 163, 74, 0.12)',
                             borderWidth: 3,
@@ -363,8 +429,11 @@
                         }
                     }
                 });
-            } else if (provinsiId) {
-                const list = Array.isArray(data) ? data : (data.tren || []);
+            } else {
+                const list = Array.isArray(data)
+                    ? data
+                    : (data.tren || data.riwayat || data.data || Object.values(data).find(v => Array.isArray(v)) || []);
+
                 const ctxProv = document.getElementById('chartTrenProvinsi').getContext('2d');
                 if (chartTrenProvinsiInstance) chartTrenProvinsiInstance.destroy();
                 chartTrenProvinsiInstance = new Chart(ctxProv, {
@@ -373,7 +442,7 @@
                         labels: list.map(d => d.tahun),
                         datasets: [{
                             label: 'UMP Provinsi',
-                            data: list.map(d => d.nominal),
+                            data: list.map(d => getNilaiUmp(d)),
                             borderColor: '#0284c7',
                             backgroundColor: 'rgba(2, 132, 199, 0.12)',
                             borderWidth: 3,
@@ -419,59 +488,63 @@
         }
     }
 
-    // 5. Load Tabel UMP dengan Search & Pagination (/api/ump)
-    async function loadTabelUmp(page = 1) {
-        currentPage = page;
-        const tahun = document.getElementById('filter-tahun').value;
-        const search = document.getElementById('search-provinsi').value;
-
+    // 5. Load Tabel UMP menggunakan Library DataTables (/api/ump)
+    async function loadDataTableUmp(tahun) {
         try {
-            const res = await fetch(`/api/ump?tahun=${tahun}&search=${encodeURIComponent(search)}&page=${page}`);
+            const res = await fetch(`/api/ump?tahun=${tahun}&per_page=100`);
             const json = await res.json();
-            const paginator = json.data?.data ? json.data : json;
-            const rows = paginator.data || [];
+            const rows = json.data?.data || json.data || [];
 
-            const tbody = document.getElementById('tabel-ump-body');
-            if (rows.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-400">Data tidak ditemukan.</td></tr>`;
-            } else {
-                const startNo = ((paginator.current_page || 1) - 1) * (paginator.per_page || 10) + 1;
-                tbody.innerHTML = rows.map((row, idx) => `
-                    <tr class="hover:bg-emerald-50/40 transition">
-                        <td class="py-3.5 px-4 font-bold text-slate-500">${startNo + idx}</td>
-                        <td class="py-3.5 px-4 font-bold text-slate-800">${getNamaProvinsi(row) || '-'}</td>
-                        <td class="py-3.5 px-4">
-                            <span class="badge-pill bg-slate-100 text-slate-700">${row.tahun}</span>
-                        </td>
-                        <td class="py-3.5 px-4 text-right font-extrabold text-emerald-700">${formatRupiah(row.nominal)}</td>
-                    </tr>
-                `).join('');
+            if (umpDataTable) {
+                umpDataTable.destroy();
             }
 
-            // Update Pagination Info & Buttons
-            document.getElementById('pagination-info').textContent =
-                `Halaman ${paginator.current_page || 1} dari ${paginator.last_page || 1} (Total ${paginator.total || rows.length} data)`;
+            const formattedData = rows.map((row, idx) => [
+                idx + 1,
+                getNamaProvinsi(row) || '-',
+                row.tahun,
+                getNilaiUmp(row)
+            ]);
 
-            const btnContainer = document.getElementById('pagination-buttons');
-            btnContainer.innerHTML = '';
-
-            if (paginator.prev_page_url || (paginator.current_page || 1) > 1) {
-                const prevBtn = document.createElement('button');
-                prevBtn.textContent = 'Sebelumnya';
-                prevBtn.className = 'btn-tactile-secondary px-3 py-1.5 text-xs';
-                prevBtn.onclick = () => loadTabelUmp(currentPage - 1);
-                btnContainer.appendChild(prevBtn);
-            }
-
-            if (paginator.next_page_url || (paginator.current_page || 1) < (paginator.last_page || 1)) {
-                const nextBtn = document.createElement('button');
-                nextBtn.textContent = 'Selanjutnya';
-                nextBtn.className = 'btn-tactile-primary px-3 py-1.5 text-xs';
-                nextBtn.onclick = () => loadTabelUmp(currentPage + 1);
-                btnContainer.appendChild(nextBtn);
-            }
+            umpDataTable = $('#tabelUmpDataTable').DataTable({
+                data: formattedData,
+                pageLength: 10,
+                lengthMenu: [10, 20, 38],
+                language: {
+                    search: 'Cari Provinsi:',
+                    searchPlaceholder: 'Ketik nama provinsi...',
+                    lengthMenu: 'Tampilkan _MENU_ data',
+                    info: 'Menampilkan _START_ - _END_ dari _TOTAL_ provinsi',
+                    infoEmpty: 'Tidak ada data UMP',
+                    zeroRecords: 'Provinsi tidak ditemukan',
+                    paginate: {
+                        previous: 'Sebelumnya',
+                        next: 'Selanjutnya'
+                    }
+                },
+                columnDefs: [
+                    {
+                        targets: 0,
+                        className: 'py-3.5 px-4 font-bold text-slate-500'
+                    },
+                    {
+                        targets: 1,
+                        className: 'py-3.5 px-4 font-bold text-slate-800'
+                    },
+                    {
+                        targets: 2,
+                        className: 'py-3.5 px-4',
+                        render: (data) => `<span class="badge-pill bg-slate-100 text-slate-700">${data}</span>`
+                    },
+                    {
+                        targets: 3,
+                        className: 'py-3.5 px-4 text-right font-extrabold text-emerald-700',
+                        render: (data, type) => type === 'display' ? formatRupiah(data) : Number(data)
+                    }
+                ]
+            });
         } catch (err) {
-            console.error('Gagal memuat tabel UMP:', err);
+            console.error('Gagal memuat DataTables UMP:', err);
         }
     }
 
@@ -482,22 +555,17 @@
         loadPerbandingan(tahunAwal);
         loadTren();
         loadDropdownProvinsi();
-        loadTabelUmp(1);
+        loadDataTableUmp(tahunAwal);
 
         document.getElementById('filter-tahun').addEventListener('change', (e) => {
             const t = e.target.value;
             loadStatistik(t);
             loadPerbandingan(t);
-            loadTabelUmp(1);
+            loadDataTableUmp(t);
         });
 
         document.getElementById('filter-provinsi-tren').addEventListener('change', (e) => {
             if (e.target.value) loadTren(e.target.value);
-        });
-
-        document.getElementById('search-provinsi').addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => loadTabelUmp(1), 300);
         });
     });
 </script>
