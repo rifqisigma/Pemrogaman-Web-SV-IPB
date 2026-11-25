@@ -62,3 +62,7 @@ Route::get('/datasheet/export', [DatasheetController::class, 'export'])->name('d
 // 7. Service API (/service-api) - Endpoint Fleksibel GET dengan Filter Kustom
 Route::get('/service-api', [ServiceApiController::class, 'index'])->name('service-api.index');
 Route::get('/api/service', [ServiceApiController::class, 'getFlexibleData'])->name('service-api.data');
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->name('dashboard');

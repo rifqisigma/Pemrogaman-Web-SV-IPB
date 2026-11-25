@@ -165,6 +165,10 @@
                            class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request()->routeIs('home') ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                             <i class="fa-solid fa-chart-pie mr-1.5 text-xs"></i> Beranda
                         </a>
+                        <a href="{{ route('dashboard') }}" 
+                           class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request()->routeIs('dashboard') ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                            <i class="fa-solid fa-chart-line mr-1.5 text-xs"></i> Dashboard
+                        </a>
                         <a href="{{ route('datasheet.index') }}" 
                            class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request()->routeIs('datasheet.*') ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                             <i class="fa-solid fa-table-list mr-1.5 text-xs"></i> Datasheet
@@ -222,17 +226,14 @@
                             </div>
                         </div>
 
-                        <!-- Logout Form -->
-                        <form action="{{ route('logout') }}" method="POST" class="inline">
-                            @csrf
-                            <button type="submit" 
-                                    onclick="return confirm('Apakah Anda yakin ingin keluar dari akun?')"
-                                    class="btn-tactile-secondary px-3.5 py-2 text-xs text-rose-600 hover:text-rose-700 hover:border-rose-300"
-                                    title="Keluar / Logout">
-                                <i class="fa-solid fa-power-off"></i>
-                                <span class="hidden sm:inline ml-1">Keluar</span>
-                            </button>
-                        </form>
+                        <!-- Logout Trigger Button -->
+                        <button type="button" 
+                                onclick="openLogoutModal()"
+                                class="btn-tactile-secondary px-3.5 py-2 text-xs text-rose-600 hover:text-rose-700 hover:border-rose-300"
+                                title="Keluar / Logout">
+                            <i class="fa-solid fa-power-off"></i>
+                            <span class="hidden sm:inline ml-1">Keluar</span>
+                        </button>
                     @endguest
                 </div>
 
@@ -244,6 +245,10 @@
             <a href="{{ route('home') }}" class="flex flex-col items-center py-1 {{ request()->routeIs('home') ? 'text-emerald-600 font-extrabold' : 'text-slate-600' }}">
                 <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>
                 <span>Beranda</span>
+            </a>
+            <a href="{{ route('dashboard') }}" class="flex flex-col items-center py-1 {{ request()->routeIs('dashboard') ? 'text-emerald-600 font-extrabold' : 'text-slate-600' }}">
+                <i class="fa-solid fa-chart-line text-base mb-0.5"></i>
+                <span>Dashboard</span>
             </a>
             <a href="{{ route('datasheet.index') }}" class="flex flex-col items-center py-1 {{ request()->routeIs('datasheet.*') ? 'text-emerald-600 font-extrabold' : 'text-slate-600' }}">
                 <i class="fa-solid fa-table-list text-base mb-0.5"></i>
@@ -363,7 +368,8 @@
                 <div>
                     <h4 class="font-bold text-slate-800 text-sm mb-3">Navigasi Utama</h4>
                     <ul class="space-y-2 text-sm text-slate-600">
-                        <li><a href="{{ route('home') }}" class="hover:text-emerald-600 transition">Peta & Dashboard Nasional</a></li>
+                        <li><a href="{{ route('home') }}" class="hover:text-emerald-600 transition">Peta & Beranda Nasional</a></li>
+                        <li><a href="{{ route('dashboard') }}" class="hover:text-emerald-600 transition">Dashboard Statistik UMP</a></li>
                         <li><a href="{{ route('datasheet.index') }}" class="hover:text-emerald-600 transition">Ekspor Datasheet Excel</a></li>
                         <li><a href="{{ route('scientific-report.index') }}" class="hover:text-emerald-600 transition">Laporan Ilmiah & Sitasi</a></li>
                         <li><a href="{{ route('service-api.index') }}" class="hover:text-emerald-600 transition">Service API (REST Fleksibel)</a></li>
@@ -392,6 +398,63 @@
             </div>
         </div>
     </footer>
+
+    <!-- Custom Modal Konfirmasi Logout -->
+    @auth
+    <div id="logoutModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+        <div class="card-tactile w-full max-w-md p-6 bg-white shadow-2xl transform transition-all">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-600 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="badge-pill bg-rose-50 text-rose-700 border border-rose-200 mb-1.5">KONFIRMASI KELUAR</span>
+                    <h3 class="text-lg font-extrabold text-slate-900">Keluar dari Akun?</h3>
+                    <p class="text-sm text-slate-500 mt-1 leading-relaxed">
+                        Sesi login Anda akan diakhiri. Anda perlu masuk kembali untuk mengakses halaman profil maupun panel administrator.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-end gap-3">
+                <button type="button" 
+                        onclick="closeLogoutModal()" 
+                        class="btn-tactile-secondary px-4 py-2.5 text-sm">
+                    Batal
+                </button>
+
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" 
+                            class="bg-rose-600 hover:bg-rose-700 text-white border-b-4 border-rose-800 active:translate-y-0.5 active:border-b-2 rounded-2xl font-bold px-5 py-2.5 text-sm transition-all inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-power-off text-xs"></i>
+                        <span>Ya, Keluar</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('logoutModal')?.addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeLogoutModal();
+            }
+        });
+    </script>
+    @endauth
 
     @stack('scripts')
 </body>

@@ -1,338 +1,504 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Statistik UMP Indonesia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-slate-50 text-slate-800 antialiased">
+@extends('layouts.app')
 
-    <!-- Navbar -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center">UMP</div>
-                <div>
-                    <h1 class="font-bold text-slate-900 leading-tight">Dashboard Upah Minimum Provinsi</h1>
-                    <p class="text-xs text-slate-500">Analisis & Monitoring Data UMP Nasional</p>
+@section('title', 'Dashboard Analisis UMP')
+
+@section('content')
+<div class="space-y-6">
+    <!-- Header & Filter Tahun -->
+    <div class="card-tactile p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200 mb-2">
+                <i class="fa-solid fa-chart-line mr-1.5"></i> DASHBOARD ANALITIK
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Statistik & <span class="text-emerald-600">Komparasi UMP Nasional</span>
+            </h1>
+            <p class="text-sm text-slate-500 mt-1">
+                Eksplorasi grafik perbandingan antar provinsi, tren kenaikan tahunan, serta pencarian data UMP secara interaktif.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-3 bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-2.5 self-start md:self-auto">
+            <label for="filter-tahun" class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                <i class="fa-regular fa-calendar mr-1 text-emerald-600"></i> Periode:
+            </label>
+            <select id="filter-tahun" class="bg-transparent text-sm font-extrabold text-slate-800 focus:outline-none cursor-pointer">
+                <option value="2026" selected>Tahun 2026</option>
+                <option value="2025">Tahun 2025</option>
+                <option value="2024">Tahun 2024</option>
+                <option value="2023">Tahun 2023</option>
+                <option value="2022">Tahun 2022</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 4 Kartu Ringkasan Statistik (KPI) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Rata-rata UMP -->
+        <div class="card-tactile p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Rata-rata UMP</span>
+                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
+                    <i class="fa-solid fa-calculator text-sm"></i>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <select id="filterTahun" class="rounded-lg border-slate-300 border px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500">
-                    <option value="">Memuat Tahun...</option>
-                </select>
-                <select id="filterProvinsi" class="rounded-lg border-slate-300 border px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500 max-w-[220px]">
-                    <option value="">Memuat Provinsi...</option>
-                </select>
+            <h3 id="stat-rata-rata" class="text-2xl font-extrabold text-slate-900 mt-3">Memuat...</h3>
+            <div class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200">Rerata Nasional</span>
             </div>
         </div>
-    </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <!-- UMP Tertinggi -->
+        <div class="card-tactile p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">UMP Tertinggi</span>
+                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-500 border border-amber-200 flex items-center justify-center">
+                    <i class="fa-solid fa-crown text-sm"></i>
+                </div>
+            </div>
+            <h3 id="stat-tertinggi" class="text-2xl font-extrabold text-emerald-600 mt-3">Memuat...</h3>
+            <p id="stat-provinsi-tertinggi" class="text-xs font-bold text-slate-600 mt-3 flex items-center gap-1">
+                <i class="fa-solid fa-location-dot text-emerald-500"></i> <span>-</span>
+            </p>
+        </div>
 
-        <!-- 4 Kartu Ringkasan -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <p class="text-xs font-medium text-slate-500 uppercase">UMP Tertinggi</p>
-                <h2 id="cardTertinggiNominal" class="text-2xl font-bold text-emerald-600 mt-1">-</h2>
-                <p id="cardTertinggiProvinsi" class="text-xs text-slate-500 mt-1">Memuat...</p>
+        <!-- UMP Terendah -->
+        <div class="card-tactile p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">UMP Terendah</span>
+                <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-500 border border-rose-200 flex items-center justify-center">
+                    <i class="fa-solid fa-arrow-trend-down text-sm"></i>
+                </div>
             </div>
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <p class="text-xs font-medium text-slate-500 uppercase">UMP Terendah</p>
-                <h2 id="cardTerendahNominal" class="text-2xl font-bold text-rose-600 mt-1">-</h2>
-                <p id="cardTerendahProvinsi" class="text-xs text-slate-500 mt-1">Memuat...</p>
-            </div>
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <p class="text-xs font-medium text-slate-500 uppercase">Rata-Rata Nasional</p>
-                <h2 id="cardRataRata" class="text-2xl font-bold text-indigo-600 mt-1">-</h2>
-                <p id="cardTahunLabel" class="text-xs text-slate-500 mt-1">Tahun -</p>
-            </div>
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <p class="text-xs font-medium text-slate-500 uppercase">Total Provinsi</p>
-                <h2 id="cardTotalProvinsi" class="text-2xl font-bold text-slate-800 mt-1">-</h2>
-                <p class="text-xs text-slate-500 mt-1">Wilayah Terdaftar</p>
-            </div>
-        </section>
+            <h3 id="stat-terendah" class="text-2xl font-extrabold text-rose-600 mt-3">Memuat...</h3>
+            <p id="stat-provinsi-terendah" class="text-xs font-bold text-slate-600 mt-3 flex items-center gap-1">
+                <i class="fa-solid fa-location-dot text-rose-500"></i> <span>-</span>
+            </p>
+        </div>
 
-        <!-- Baris Grafik 1: Top 10 Tertinggi & Terendah -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 class="font-semibold text-slate-800 mb-4">10 Provinsi UMP Tertinggi</h3>
-                <div class="h-72"><canvas id="chartTop10"></canvas></div>
+        <!-- Total Provinsi -->
+        <div class="card-tactile p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Cakupan Wilayah</span>
+                <div class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center">
+                    <i class="fa-solid fa-map-location-dot text-sm"></i>
+                </div>
             </div>
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 class="font-semibold text-slate-800 mb-4">10 Provinsi UMP Terendah</h3>
-                <div class="h-72"><canvas id="chartBottom10"></canvas></div>
+            <h3 id="stat-total-provinsi" class="text-2xl font-extrabold text-sky-600 mt-3">0 Provinsi</h3>
+            <div class="mt-3">
+                <span class="badge-pill bg-sky-50 text-sky-700 border border-sky-200">Data Terverifikasi</span>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <!-- Baris Grafik 2: Tren Nasional & Tren Per Provinsi -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 class="font-semibold text-slate-800 mb-4">Tren Rata-Rata UMP Nasional per Tahun</h3>
-                <div class="h-72"><canvas id="chartTrenNasional"></canvas></div>
-            </div>
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 id="judulTrenProvinsi" class="font-semibold text-slate-800 mb-4">Tren UMP Provinsi Pilihan</h3>
-                <div class="h-72"><canvas id="chartTrenProvinsi"></canvas></div>
-            </div>
-        </section>
-
-        <!-- Baris Grafik 3: Rentang Nasional & Perbandingan Seluruh Provinsi -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 class="font-semibold text-slate-800 mb-4">Rentang UMP Tahunan (Min - Avg - Max)</h3>
-                <div class="h-72"><canvas id="chartRentang"></canvas></div>
-            </div>
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm lg:col-span-2">
-                <h3 class="font-semibold text-slate-800 mb-4">Perbandingan Seluruh Provinsi</h3>
-                <div class="h-72"><canvas id="chartSemuaProvinsi"></canvas></div>
-            </div>
-        </section>
-
-        <!-- Tabel Data UMP -->
-        <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <!-- Baris Grafik 1: Top 10 & Bottom 10 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card-tactile p-6">
+            <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h3 class="font-semibold text-slate-800">Daftar Data UMP</h3>
-                    <p class="text-xs text-slate-500">Gunakan pencarian atau filter di atas untuk menyaring tabel</p>
+                    <h3 class="text-base font-extrabold text-slate-800">Top 10 Provinsi UMP Tertinggi</h3>
+                    <p class="text-xs text-slate-500">Peringkat 10 wilayah dengan standar upah minimum tertinggi</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <input type="text" id="searchInput" placeholder="Cari nama provinsi..."
-                        class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 w-64">
-                    <button id="resetFilterBtn" class="px-3 py-2 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg">
-                        Reset
-                    </button>
+                <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200">Top 10</span>
+            </div>
+            <div class="relative h-72">
+                <canvas id="chartTop10"></canvas>
+            </div>
+        </div>
+
+        <div class="card-tactile p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-800">Bottom 10 Provinsi UMP Terendah</h3>
+                    <p class="text-xs text-slate-500">Peringkat 10 wilayah dengan standar upah minimum terendah</p>
                 </div>
+                <span class="badge-pill bg-amber-50 text-amber-700 border border-amber-200">Bottom 10</span>
             </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-slate-50 text-slate-600 uppercase text-xs border-b border-slate-200">
-                        <tr>
-                            <th class="px-6 py-3">No</th>
-                            <th class="px-6 py-3">Kode</th>
-                            <th class="px-6 py-3">Provinsi</th>
-                            <th class="px-6 py-3">Tahun</th>
-                            <th class="px-6 py-3 text-right">Nominal UMP</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelUmpBody" class="divide-y divide-slate-100">
-                        <tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">Memuat data...</td></tr>
-                    </tbody>
-                </table>
+            <div class="relative h-72">
+                <canvas id="chartBottom10"></canvas>
             </div>
+        </div>
+    </div>
 
-            <!-- Pagination -->
-            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
-                <span id="paginationInfo">Menampilkan 0 data</span>
-                <div class="flex items-center gap-2">
-                    <button id="prevPage" class="px-3 py-1.5 rounded border border-slate-300 hover:bg-slate-50 disabled:opacity-40">Sebelumnya</button>
-                    <span id="pageIndicator" class="font-medium">Hal 1</span>
-                    <button id="nextPage" class="px-3 py-1.5 rounded border border-slate-300 hover:bg-slate-50 disabled:opacity-40">Berikutnya</button>
+    <!-- Baris Grafik 2: Tren Nasional & Tren Spesifik Provinsi -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card-tactile p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-800">Tren Rata-rata UMP Nasional</h3>
+                    <p class="text-xs text-slate-500">Perkembangan rerata upah minimum dari tahun ke tahun</p>
                 </div>
+                <span class="badge-pill bg-sky-50 text-sky-700 border border-sky-200">Historis</span>
             </div>
-        </section>
+            <div class="relative h-72">
+                <canvas id="chartTrenNasional"></canvas>
+            </div>
+        </div>
 
-    </main>
+        <div class="card-tactile p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-800">Tren UMP Per Provinsi</h3>
+                    <p class="text-xs text-slate-500">Pilih provinsi untuk melihat riwayat pertumbuhannya</p>
+                </div>
+                <select id="filter-provinsi-tren" class="rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none">
+                    <option value="">Memuat provinsi...</option>
+                </select>
+            </div>
+            <div class="relative h-72">
+                <canvas id="chartTrenProvinsi"></canvas>
+            </div>
+        </div>
+    </div>
 
-    <script>
-        const formatRupiah = (angka) => new Intl.NumberFormat('id-ID', {
-            style: 'currency', currency: 'IDR', maximumFractionDigits: 0
+    <!-- Tabel Data Lengkap + Search + Pagination -->
+    <div class="card-tactile p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+            <div>
+                <h3 class="text-base font-extrabold text-slate-800">Daftar Lengkap UMP Seluruh Provinsi</h3>
+                <p class="text-xs text-slate-500">Gunakan kolom pencarian untuk menyaring provinsi secara langsung</p>
+            </div>
+            <div class="relative w-full sm:w-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="search-provinsi" placeholder="Cari nama provinsi..." 
+                       class="w-full rounded-xl border-2 border-slate-200 bg-slate-50 pl-9 pr-4 py-2 text-sm font-medium text-slate-700 focus:bg-white focus:border-emerald-500 focus:outline-none transition">
+            </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b-2 border-slate-200 text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                        <th class="py-3.5 px-4 w-16">No</th>
+                        <th class="py-3.5 px-4">Provinsi</th>
+                        <th class="py-3.5 px-4">Tahun</th>
+                        <th class="py-3.5 px-4 text-right">Nominal UMP</th>
+                    </tr>
+                </thead>
+                <tbody id="tabel-ump-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                    <tr>
+                        <td colspan="4" class="py-8 text-center text-slate-400">Memuat data UMP...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-bold text-slate-600">
+            <div id="pagination-info">Menampilkan data...</div>
+            <div id="pagination-buttons" class="flex items-center gap-2"></div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    let chartTop10Instance = null;
+    let chartBottom10Instance = null;
+    let chartTrenNasionalInstance = null;
+    let chartTrenProvinsiInstance = null;
+
+    let currentPage = 1;
+    let searchTimeout = null;
+
+    const formatRupiah = (angka) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            maximumFractionDigits: 0
         }).format(angka || 0);
+    };
 
-        const charts = {};
-        let currentPage = 1;
-        let lastPage = 1;
-        let searchTimeout = null;
+    const getNamaProvinsi = (item) => {
+        if (!item) return null;
+        return item.provinsi?.nama_provinsi ||
+               item.nama_provinsi ||
+               (typeof item.provinsi === 'string' ? item.provinsi : null) ||
+               null;
+    };
 
-        function getHeaders() {
-            const token = localStorage.getItem('token');
-            const headers = { 'Accept': 'application/json' };
-            if (token) headers['Authorization'] = `Bearer ${token}`;
-            return headers;
+    // 1. Load KPI Statistik (/api/ump/statistik)
+    async function loadStatistik(tahun) {
+        try {
+            const res = await fetch(`/api/ump/statistik?tahun=${tahun}`);
+            const json = await res.json();
+            const data = json.data || json;
+
+            document.getElementById('stat-rata-rata').textContent = formatRupiah(data.rata_rata);
+            document.getElementById('stat-tertinggi').textContent = formatRupiah(data.tertinggi?.nominal ?? data.ump_tertinggi);
+
+            const provTertinggi =
+                getNamaProvinsi(data.tertinggi) ||
+                data.provinsi_tertinggi ||
+                '-';
+            document.getElementById('stat-provinsi-tertinggi').querySelector('span').textContent = provTertinggi;
+
+            document.getElementById('stat-terendah').textContent = formatRupiah(data.terendah?.nominal ?? data.ump_terendah);
+
+            const provTerendah =
+                getNamaProvinsi(data.terendah) ||
+                data.provinsi_terendah ||
+                '-';
+            document.getElementById('stat-provinsi-terendah').querySelector('span').textContent = provTerendah;
+
+            document.getElementById('stat-total-provinsi').textContent = `${data.total_provinsi ?? 38} Provinsi`;
+        } catch (err) {
+            console.error('Gagal memuat statistik:', err);
         }
+    }
 
-        function renderChart(id, type, labels, datasets, horizontal = false) {
-            if (charts[id]) charts[id].destroy();
-            const ctx = document.getElementById(id).getContext('2d');
-            charts[id] = new Chart(ctx, {
-                type,
-                data: { labels, datasets },
+    // 2. Load Perbandingan Top 10 & Bottom 10 (/api/ump/perbandingan)
+    async function loadPerbandingan(tahun) {
+        try {
+            const res = await fetch(`/api/ump/perbandingan?tahun=${tahun}`);
+            const json = await res.json();
+            const data = json.data || json;
+
+            const top10 = data.top_10 || [];
+            const bottom10 = data.bottom_10 || [];
+
+            // Isi nama provinsi tertinggi & terendah jika di /api/ump/statistik belum muncul
+            const spanTertinggi = document.getElementById('stat-provinsi-tertinggi').querySelector('span');
+            if (top10.length > 0 && (spanTertinggi.textContent === '-' || !spanTertinggi.textContent.trim())) {
+                spanTertinggi.textContent = getNamaProvinsi(top10[0]) || '-';
+            }
+
+            const spanTerendah = document.getElementById('stat-provinsi-terendah').querySelector('span');
+            if (bottom10.length > 0 && (spanTerendah.textContent === '-' || !spanTerendah.textContent.trim())) {
+                spanTerendah.textContent = getNamaProvinsi(bottom10[0]) || '-';
+            }
+
+            // Render Top 10
+            const ctxTop = document.getElementById('chartTop10').getContext('2d');
+            if (chartTop10Instance) chartTop10Instance.destroy();
+            chartTop10Instance = new Chart(ctxTop, {
+                type: 'bar',
+                data: {
+                    labels: top10.map(item => getNamaProvinsi(item)),
+                    datasets: [{
+                        label: 'UMP (Rp)',
+                        data: top10.map(item => item.nominal),
+                        backgroundColor: '#16a34a',
+                        borderRadius: 8
+                    }]
+                },
                 options: {
+                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    indexAxis: horizontal ? 'y' : 'x',
-                    plugins: { legend: { display: datasets.length > 1 } },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        x: { ticks: { font: { size: 10 } } },
-                        y: { ticks: { font: { size: 10 } } }
+                        x: {
+                            ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' }
+                        }
                     }
                 }
             });
-        }
 
-        async function loadProvinsiDropdown() {
-            const res = await fetch('/api/provinsi', { headers: getHeaders() });
-            const json = await res.json();
-            const select = document.getElementById('filterProvinsi');
-            select.innerHTML = '<option value="">Semua Provinsi (Tren: Jakarta)</option>';
-            json.data.forEach(p => {
-                select.innerHTML += `<option value="${p.id}">${p.nama_provinsi}</option>`;
+            // Render Bottom 10
+            const ctxBottom = document.getElementById('chartBottom10').getContext('2d');
+            if (chartBottom10Instance) chartBottom10Instance.destroy();
+            chartBottom10Instance = new Chart(ctxBottom, {
+                type: 'bar',
+                data: {
+                    labels: bottom10.map(item => getNamaProvinsi(item)),
+                    datasets: [{
+                        label: 'UMP (Rp)',
+                        data: bottom10.map(item => item.nominal),
+                        backgroundColor: '#0284c7',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' }
+                        }
+                    }
+                }
             });
+        } catch (err) {
+            console.error('Gagal memuat perbandingan:', err);
         }
+    }
 
-        async function loadStatistik(tahun = '') {
-            const url = tahun ? `/api/ump/statistik?tahun=${tahun}` : '/api/ump/statistik';
-            const res = await fetch(url, { headers: getHeaders() });
-            const { data } = await res.json();
+    // 3. Load Tren Nasional & Tren Provinsi (/api/ump/tren)
+    async function loadTren(provinsiId = '') {
+        try {
+            const url = provinsiId ? `/api/ump/tren?provinsi_id=${provinsiId}` : `/api/ump/tren`;
+            const res = await fetch(url);
+            const json = await res.json();
+            const data = json.data || json;
 
-            const selectTahun = document.getElementById('filterTahun');
-            if (selectTahun.options.length <= 1 && data.tahun_tersedia.length) {
-                selectTahun.innerHTML = '';
-                data.tahun_tersedia.forEach(t => {
-                    selectTahun.innerHTML += `<option value="${t}" ${t == data.tahun_aktif ? 'selected' : ''}>Tahun ${t}</option>`;
+            if (!provinsiId && Array.isArray(data)) {
+                const ctxNasional = document.getElementById('chartTrenNasional').getContext('2d');
+                if (chartTrenNasionalInstance) chartTrenNasionalInstance.destroy();
+                chartTrenNasionalInstance = new Chart(ctxNasional, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => d.tahun),
+                        datasets: [{
+                            label: 'Rata-rata Nasional',
+                            data: data.map(d => d.rata_rata || d.nominal),
+                            borderColor: '#16a34a',
+                            backgroundColor: 'rgba(22, 163, 74, 0.12)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#16a34a'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' } }
+                        }
+                    }
+                });
+            } else if (provinsiId) {
+                const list = Array.isArray(data) ? data : (data.tren || []);
+                const ctxProv = document.getElementById('chartTrenProvinsi').getContext('2d');
+                if (chartTrenProvinsiInstance) chartTrenProvinsiInstance.destroy();
+                chartTrenProvinsiInstance = new Chart(ctxProv, {
+                    type: 'line',
+                    data: {
+                        labels: list.map(d => d.tahun),
+                        datasets: [{
+                            label: 'UMP Provinsi',
+                            data: list.map(d => d.nominal),
+                            borderColor: '#0284c7',
+                            backgroundColor: 'rgba(2, 132, 199, 0.12)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#0284c7'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' } }
+                        }
+                    }
                 });
             }
-
-            document.getElementById('cardTertinggiNominal').textContent = data.tertinggi ? formatRupiah(data.tertinggi.nominal) : '-';
-            document.getElementById('cardTertinggiProvinsi').textContent = data.tertinggi ? data.tertinggi.provinsi : '-';
-            document.getElementById('cardTerendahNominal').textContent = data.terendah ? formatRupiah(data.terendah.nominal) : '-';
-            document.getElementById('cardTerendahProvinsi').textContent = data.terendah ? data.terendah.provinsi : '-';
-            document.getElementById('cardRataRata').textContent = formatRupiah(data.rata_rata);
-            document.getElementById('cardTahunLabel').textContent = `Tahun ${data.tahun_aktif}`;
-            document.getElementById('cardTotalProvinsi').textContent = `${data.total_provinsi} Provinsi`;
-
-            return data.tahun_aktif;
+        } catch (err) {
+            console.error('Gagal memuat tren:', err);
         }
+    }
 
-        async function loadPerbandingan(tahun) {
-            const res = await fetch(`/api/ump/perbandingan?tahun=${tahun}`, { headers: getHeaders() });
-            const { data } = await res.json();
-
-            renderChart('chartTop10', 'bar',
-                data.top_10.map(i => i.nama_provinsi),
-                [{ label: 'UMP (Rp)', data: data.top_10.map(i => i.nominal), backgroundColor: '#10b981', borderRadius: 4 }],
-                true
-            );
-
-            renderChart('chartBottom10', 'bar',
-                data.bottom_10.map(i => i.nama_provinsi),
-                [{ label: 'UMP (Rp)', data: data.bottom_10.map(i => i.nominal), backgroundColor: '#f43f5e', borderRadius: 4 }],
-                true
-            );
-
-            renderChart('chartSemuaProvinsi', 'bar',
-                data.semua.map(i => i.nama_provinsi),
-                [{ label: `UMP ${tahun}`, data: data.semua.map(i => i.nominal), backgroundColor: '#6366f1', borderRadius: 3 }]
-            );
-        }
-
-        async function loadTren(provinsiId = '') {
-            const url = provinsiId ? `/api/ump/tren?provinsi_id=${provinsiId}` : '/api/ump/tren';
-            const res = await fetch(url, { headers: getHeaders() });
-            const { data } = await res.json();
-
-            renderChart('chartTrenNasional', 'line',
-                data.nasional.map(i => i.tahun),
-                [{ label: 'Rata-rata Nasional', data: data.nasional.map(i => i.rata_rata), borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.1)', fill: true, tension: 0.3 }]
-            );
-
-            document.getElementById('judulTrenProvinsi').textContent = `Tren UMP: ${data.provinsi.nama_provinsi || 'Provinsi Pilihan'}`;
-            renderChart('chartTrenProvinsi', 'line',
-                data.provinsi.riwayat.map(i => i.tahun),
-                [{ label: data.provinsi.nama_provinsi, data: data.provinsi.riwayat.map(i => i.nominal), borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.1)', fill: true, tension: 0.3 }]
-            );
-
-            renderChart('chartRentang', 'line',
-                data.nasional.map(i => i.tahun),
-                [
-                    { label: 'Tertinggi', data: data.nasional.map(i => i.tertinggi), borderColor: '#10b981', tension: 0.3 },
-                    { label: 'Rata-rata', data: data.nasional.map(i => i.rata_rata), borderColor: '#6366f1', tension: 0.3 },
-                    { label: 'Terendah', data: data.nasional.map(i => i.terendah), borderColor: '#f43f5e', tension: 0.3 },
-                ]
-            );
-        }
-
-        async function loadTabel(page = 1) {
-            const tahun = document.getElementById('filterTahun').value;
-            const provinsiId = document.getElementById('filterProvinsi').value;
-            const search = document.getElementById('searchInput').value;
-
-            const params = new URLSearchParams({ page, per_page: 10 });
-            if (tahun) params.append('tahun', tahun);
-            if (provinsiId) params.append('provinsi_id', provinsiId);
-            if (search) params.append('search', search);
-
-            const res = await fetch(`/api/ump?${params.toString()}`, { headers: getHeaders() });
+    // 4. Load Daftar Provinsi untuk Dropdown Tren
+    async function loadDropdownProvinsi() {
+        try {
+            const res = await fetch('/api/ump?tahun=2026&per_page=100');
             const json = await res.json();
-            const tbody = document.getElementById('tabelUmpBody');
+            const items = json.data?.data || json.data || [];
+            const select = document.getElementById('filter-provinsi-tren');
 
-            if (!json.data || json.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">Tidak ada data UMP ditemukan.</td></tr>';
-                document.getElementById('paginationInfo').textContent = 'Menampilkan 0 data';
-                return;
+            select.innerHTML = items.map(item => {
+                const prov = item.provinsi || {};
+                return `<option value="${prov.id || item.provinsi_id}">${getNamaProvinsi(item)}</option>`;
+            }).join('');
+
+            if (select.value) {
+                loadTren(select.value);
+            }
+        } catch (err) {
+            console.error('Gagal memuat daftar provinsi:', err);
+        }
+    }
+
+    // 5. Load Tabel UMP dengan Search & Pagination (/api/ump)
+    async function loadTabelUmp(page = 1) {
+        currentPage = page;
+        const tahun = document.getElementById('filter-tahun').value;
+        const search = document.getElementById('search-provinsi').value;
+
+        try {
+            const res = await fetch(`/api/ump?tahun=${tahun}&search=${encodeURIComponent(search)}&page=${page}`);
+            const json = await res.json();
+            const paginator = json.data?.data ? json.data : json;
+            const rows = paginator.data || [];
+
+            const tbody = document.getElementById('tabel-ump-body');
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-400">Data tidak ditemukan.</td></tr>`;
+            } else {
+                const startNo = ((paginator.current_page || 1) - 1) * (paginator.per_page || 10) + 1;
+                tbody.innerHTML = rows.map((row, idx) => `
+                    <tr class="hover:bg-emerald-50/40 transition">
+                        <td class="py-3.5 px-4 font-bold text-slate-500">${startNo + idx}</td>
+                        <td class="py-3.5 px-4 font-bold text-slate-800">${getNamaProvinsi(row) || '-'}</td>
+                        <td class="py-3.5 px-4">
+                            <span class="badge-pill bg-slate-100 text-slate-700">${row.tahun}</span>
+                        </td>
+                        <td class="py-3.5 px-4 text-right font-extrabold text-emerald-700">${formatRupiah(row.nominal)}</td>
+                    </tr>
+                `).join('');
             }
 
-            currentPage = json.meta.current_page;
-            lastPage = json.meta.last_page;
-            const startNo = (currentPage - 1) * json.meta.per_page + 1;
+            // Update Pagination Info & Buttons
+            document.getElementById('pagination-info').textContent =
+                `Halaman ${paginator.current_page || 1} dari ${paginator.last_page || 1} (Total ${paginator.total || rows.length} data)`;
 
-            tbody.innerHTML = json.data.map((row, idx) => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-3 text-slate-500">${startNo + idx}</td>
-                    <td class="px-6 py-3 font-mono text-xs text-slate-600">${row.provinsi?.kode_provinsi ?? '-'}</td>
-                    <td class="px-6 py-3 font-medium text-slate-800">${row.provinsi?.nama_provinsi ?? '-'}</td>
-                    <td class="px-6 py-3 text-slate-600">${row.tahun}</td>
-                    <td class="px-6 py-3 text-right font-semibold text-slate-900">${formatRupiah(row.nominal)}</td>
-                </tr>
-            `).join('');
+            const btnContainer = document.getElementById('pagination-buttons');
+            btnContainer.innerHTML = '';
 
-            document.getElementById('paginationInfo').textContent = `Total ${json.meta.total} data ditemukan`;
-            document.getElementById('pageIndicator').textContent = `Hal ${currentPage} dari ${lastPage}`;
-            document.getElementById('prevPage').disabled = currentPage <= 1;
-            document.getElementById('nextPage').disabled = currentPage >= lastPage;
+            if (paginator.prev_page_url || (paginator.current_page || 1) > 1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = 'Sebelumnya';
+                prevBtn.className = 'btn-tactile-secondary px-3 py-1.5 text-xs';
+                prevBtn.onclick = () => loadTabelUmp(currentPage - 1);
+                btnContainer.appendChild(prevBtn);
+            }
+
+            if (paginator.next_page_url || (paginator.current_page || 1) < (paginator.last_page || 1)) {
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = 'Selanjutnya';
+                nextBtn.className = 'btn-tactile-primary px-3 py-1.5 text-xs';
+                nextBtn.onclick = () => loadTabelUmp(currentPage + 1);
+                btnContainer.appendChild(nextBtn);
+            }
+        } catch (err) {
+            console.error('Gagal memuat tabel UMP:', err);
         }
+    }
 
-        document.getElementById('filterTahun').addEventListener('change', async (e) => {
-            const tahun = e.target.value;
-            await loadStatistik(tahun);
-            await loadPerbandingan(tahun);
-            await loadTabel(1);
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        const tahunAwal = document.getElementById('filter-tahun').value;
+        loadStatistik(tahunAwal);
+        loadPerbandingan(tahunAwal);
+        loadTren();
+        loadDropdownProvinsi();
+        loadTabelUmp(1);
+
+        document.getElementById('filter-tahun').addEventListener('change', (e) => {
+            const t = e.target.value;
+            loadStatistik(t);
+            loadPerbandingan(t);
+            loadTabelUmp(1);
         });
 
-        document.getElementById('filterProvinsi').addEventListener('change', async (e) => {
-            const provId = e.target.value;
-            await loadTren(provId);
-            await loadTabel(1);
+        document.getElementById('filter-provinsi-tren').addEventListener('change', (e) => {
+            if (e.target.value) loadTren(e.target.value);
         });
 
-        document.getElementById('searchInput').addEventListener('input', () => {
+        document.getElementById('search-provinsi').addEventListener('input', () => {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => loadTabel(1), 350);
+            searchTimeout = setTimeout(() => loadTabelUmp(1), 300);
         });
-
-        document.getElementById('resetFilterBtn').addEventListener('click', async () => {
-            document.getElementById('filterProvinsi').value = '';
-            document.getElementById('searchInput').value = '';
-            await loadTren('');
-            await loadTabel(1);
-        });
-
-        document.getElementById('prevPage').addEventListener('click', () => { if (currentPage > 1) loadTabel(currentPage - 1); });
-        document.getElementById('nextPage').addEventListener('click', () => { if (currentPage < lastPage) loadTabel(currentPage + 1); });
-
-        (async function init() {
-            await loadProvinsiDropdown();
-            const tahunAktif = await loadStatistik();
-            await Promise.all([
-                loadPerbandingan(tahunAktif),
-                loadTren(),
-                loadTabel(1)
-            ]);
-        })();
-    </script>
-</body>
-</html>
+    });
+</script>
+@endpush
