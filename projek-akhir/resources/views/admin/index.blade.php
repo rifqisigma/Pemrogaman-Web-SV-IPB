@@ -142,7 +142,7 @@
 
         <!-- Tabel Audit Log -->
         <div class="overflow-x-auto rounded-2xl border-2 border-slate-200">
-            <table class="w-full text-left text-xs">
+            <table class="w-full text-left text-xs" data-datatable data-server-paginated>
                 <thead class="bg-slate-100/90 border-b-2 border-slate-200 text-slate-600 font-extrabold uppercase tracking-wider">
                     <tr>
                         <th class="py-3 px-4">Waktu & IP</th>
@@ -155,7 +155,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                    @forelse($logs as $log)
+                    @foreach($logs as $log)
                         @php
                             $diff = $log->gaji_sebelumnya ? $log->gaji_nominal - $log->gaji_sebelumnya : null;
                         @endphp
@@ -228,15 +228,8 @@
                                     </button>
                                 </form>
                             </td>
-
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="py-8 text-center text-slate-400 font-semibold">
-                                Tidak ada log audit yang cocok dengan filter yang dipilih.
-                            </td>
-                        </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -261,7 +254,7 @@
         </div>
 
         <div class="overflow-x-auto rounded-2xl border-2 border-slate-200">
-            <table class="w-full text-left text-xs">
+            <table class="w-full text-left text-xs" data-datatable>
                 <thead class="bg-slate-100/90 border-b-2 border-slate-200 text-slate-600 font-extrabold uppercase tracking-wider">
                     <tr>
                         <th class="py-3 px-4 w-12 text-center">ID</th>

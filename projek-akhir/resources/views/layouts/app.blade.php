@@ -22,6 +22,14 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- DataTable CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    
+
     <script>
         tailwind.config = {
             theme: {
@@ -133,6 +141,66 @@
             font-size: 0.75rem;
             font-weight: 700;
             letter-spacing: 0.025em;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.4rem 0.85rem;
+            background-color: #f8fafc;
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+        .dataTables_wrapper .dataTables_filter input:focus {
+            background-color: #ffffff;
+            border-color: #16a34a;
+        }
+        .dataTables_wrapper .dataTables_length select {
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.35rem 0.65rem;
+            background-color: #f8fafc;
+            font-weight: 700;
+            color: #334155;
+            outline: none;
+        }
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 1rem;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #475569;
+        }
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            margin-top: 1rem;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #475569;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border-radius: 0.75rem !important;
+            border: 2px solid #e2e8f0 !important;
+            background: #ffffff !important;
+            color: #334155 !important;
+            font-weight: 700 !important;
+            padding: 0.3rem 0.75rem !important;
+            margin-left: 0.25rem !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #16a34a !important;
+            border-color: #15803d !important;
+            color: #ffffff !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+        table.dataTable.no-footer {
+            border-bottom: 2px solid #e2e8f0;
         }
     </style>
     @stack('styles')
@@ -455,6 +523,72 @@
         });
     </script>
     @endauth
+
+    <script>
+        // 1. Konfigurasi Default Global untuk Semua DataTables
+        if (typeof $.fn.dataTable !== 'undefined') {
+            $.extend(true, $.fn.dataTable.defaults, {
+                pageLength: 10,
+                lengthMenu: [[10, 20, 38, 50, 100, -1], [10, 20, 38, 50, 100, "Semua"]],
+                language: {
+                    search: "Cari:",
+                    searchPlaceholder: "Ketik kata kunci...",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                    infoEmpty: "Tidak ada data tersedia",
+                    infoFiltered: "(disaring dari _MAX_ total data)",
+                    zeroRecords: "Data tidak ditemukan",
+                    paginate: {
+                        first: "Awal",
+                        last: "Akhir",
+                        next: "Selanjutnya",
+                        previous: "Sebelumnya"
+                    }
+                }
+            });
+        }
+
+        // 2. Helper Global yang dapat dipakai di berbagai halaman (Dashboard, Datasheet, dll.)
+        window.AppDataTable = {
+            formatRupiah: function (angka) {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    maximumFractionDigits: 0
+                }).format(angka || 0);
+            },
+
+            /**
+             * Mendaftarkan filter range tahun ke DataTables tertentu secara reusable
+             * @param {string} tableId - ID elemen <table> (tanpa tanda #)
+             * @param {string} minSelector - Selector input/select tahun awal (contoh: '#tahun_dari')
+             * @param {string} maxSelector - Selector input/select tahun akhir (contoh: '#tahun_sampai')
+             * @param {number} yearColIndex - Indeks kolom tahun pada tabel (dimulai dari 0)
+             */
+            registerYearRangeFilter: function (tableId, minSelector, maxSelector, yearColIndex) {
+                $.fn.dataTable.ext.search.push(function (settings, data) {
+                    if (settings.nTable.id !== tableId) return true;
+
+                    const minYear = parseInt($(minSelector).val(), 10);
+                    const maxYear = parseInt($(maxSelector).val(), 10);
+                    
+                    // Bersihkan tag HTML jika sel kolom dibungkus badge/span
+                    const rawText = String(data[yearColIndex]).replace(/<[^>]*>?/gm, '').trim();
+                    const rowYear = parseInt(rawText, 10) || 0;
+
+                    if (
+                        (isNaN(minYear) && isNaN(maxYear)) ||
+                        (isNaN(minYear) && rowYear <= maxYear) ||
+                        (minYear <= rowYear && isNaN(maxYear)) ||
+                        (minYear <= rowYear && rowYear <= maxYear)
+                    ) {
+                        return true;
+                    }
+                    return false;
+                });
+            }
+        };
+    </script>
 
     @stack('scripts')
 </body>

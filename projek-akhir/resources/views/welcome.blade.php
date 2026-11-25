@@ -295,7 +295,7 @@
     @endif
 
     <!-- SECTION: TABEL PERINGKAT LENGKAP 38 PROVINSI -->
-    <section class="card-tactile p-6 bg-white space-y-4">
+    <<section class="card-tactile p-6 bg-white space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
                 <h3 class="font-black text-slate-900 text-base flex items-center gap-2">
@@ -304,19 +304,18 @@
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">Total {{ count($provinsiData) }} provinsi terdaftar dalam basis data resmi</p>
             </div>
-            <div class="w-full sm:w-64">
+            {{-- <div class="w-full sm:w-64">
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
-                    <input type="text" id="tableSearch" placeholder="Cari nama provinsi..."
-                           class="w-full pl-9 pr-3 py-1.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-xs font-semibold focus:border-emerald-500 focus:outline-none">
+                    <input type="text" id="tableSearch" placeholder="Cari nama provinsi..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-xs font-semibold focus:border-emerald-500 focus:outline-none">
                 </div>
-            </div>
+            </div> --}}
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border-2 border-slate-200">
-            <table class="w-full text-left text-xs" id="provinsiTable">
+        <div class="overflow-x-auto rounded-2xl">
+            <table class="w-full text-left text-xs border-collapse" id="provinsiTable">
                 <thead class="bg-slate-100/80 border-b-2 border-slate-200 text-slate-600 font-extrabold uppercase tracking-wider">
                     <tr>
                         <th class="py-3 px-4 text-center w-12">#</th>
@@ -329,18 +328,20 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
                     @foreach($provinsiData as $idx => $p)
-                        <tr class="hover:bg-slate-50/80 transition-colors prov-row" data-name="{{ strtolower($p['nama']) }}">
+                        <tr class="hover:bg-slate-50/80 transition-colors">
                             <td class="py-3 px-4 text-center font-bold text-slate-400">{{ $idx + 1 }}</td>
-                            <td class="py-3 px-4 font-bold text-slate-900 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 inline-flex items-center justify-center text-[10px] font-mono font-bold">
-                                    {{ $p['kode'] }}
-                                </span>
-                                <span>{{ $p['nama'] }}</span>
+                            <td class="py-3 px-4 font-bold text-slate-900">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 inline-flex items-center justify-center text-[10px] font-mono font-bold">
+                                        {{ $p['kode'] }}
+                                    </span>
+                                    <span>{{ $p['nama'] }}</span>
+                                </div>
                             </td>
-                            <td class="py-3 px-4 text-right font-black text-emerald-700 text-sm">
+                            <td class="py-3 px-4 text-right font-black text-emerald-700 text-sm" data-order="{{ $p['nominal'] }}">
                                 {{ $p['formatted'] }}
                             </td>
-                            <td class="py-3 px-4 text-right">
+                            <td class="py-3 px-4 text-right" data-order="{{ $p['growth'] ?? -999 }}">
                                 @if(!is_null($p['growth']))
                                     <span class="inline-flex items-center gap-1 font-bold {{ $p['growth'] >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">
                                         {{ $p['growth'] >= 0 ? '+' : '' }}{{ $p['growth'] }}%
@@ -565,17 +566,25 @@
         }
     });
 
-    // 4. Live Table Search
-    document.getElementById('tableSearch').addEventListener('input', function(e) {
-        const val = e.target.value.toLowerCase().trim();
-        const rows = document.querySelectorAll('.prov-row');
-        rows.forEach(r => {
-            const name = r.getAttribute('data-name');
-            if (name.includes(val)) {
-                r.style.display = '';
-            } else {
-                r.style.display = 'none';
-            }
+    $(document).ready(function () {
+        const provinsiTable = $('#provinsiTable').DataTable({
+            pageLength: 10,
+            order: [[0, 'asc']],
+            language: {
+                        search: 'Cari Provinsi:',
+                        searchPlaceholder: 'Ketik nama provinsi...',
+                        info: 'Menampilkan _START_ - _END_ dari _TOTAL_ provinsi',
+                        infoEmpty: 'Tidak ada data provinsi',
+                        zeroRecords: 'Nama provinsi tidak ditemukan'
+                    },
+            columnDefs: [
+                { targets: 5, orderable: false, searchable: false } // Kolom Aksi tidak perlu di-sort/search
+            ]
+        });
+
+        // Hubungkan input #tableSearch ke fungsi pencarian DataTables
+        $('#tableSearch').on('keyup change', function () {
+            provinsiTable.search(this.value).draw();
         });
     });
 </script>

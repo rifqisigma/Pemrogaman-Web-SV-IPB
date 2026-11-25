@@ -177,7 +177,7 @@
         </div>
 
         <div class="overflow-x-auto rounded-2xl border-2 border-slate-200">
-            <table class="w-full text-left text-xs">
+            <table class="w-full text-left text-xs" data-datatable>
                 <thead class="bg-slate-100/90 border-b-2 border-slate-200 text-slate-600 font-extrabold uppercase tracking-wider">
                     <tr>
                         <th class="py-3 px-4 w-12 text-center">No</th>

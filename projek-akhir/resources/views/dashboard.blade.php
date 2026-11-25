@@ -2,73 +2,6 @@
 
 @section('title', 'Dashboard Analisis UMP')
 
-@push('styles')
-<!-- DataTables CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
-<style>
-    /* Custom Styling DataTables agar menyatu dengan tema Tactile NationalWage */
-    .dataTables_wrapper .dataTables_filter input {
-        border: 2px solid #e2e8f0;
-        border-radius: 0.75rem;
-        padding: 0.4rem 0.85rem;
-        background-color: #f8fafc;
-        font-size: 0.875rem;
-        margin-left: 0.5rem;
-        outline: none;
-        transition: all 0.15s ease;
-    }
-    .dataTables_wrapper .dataTables_filter input:focus {
-        background-color: #ffffff;
-        border-color: #16a34a;
-    }
-    .dataTables_wrapper .dataTables_length select {
-        border: 2px solid #e2e8f0;
-        border-radius: 0.75rem;
-        padding: 0.35rem 0.65rem;
-        background-color: #f8fafc;
-        font-weight: 700;
-        color: #334155;
-        outline: none;
-    }
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_filter {
-        margin-bottom: 1rem;
-        font-size: 0.8125rem;
-        font-weight: 700;
-        color: #475569;
-    }
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_paginate {
-        margin-top: 1rem;
-        font-size: 0.8125rem;
-        font-weight: 700;
-        color: #475569;
-    }
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        border-radius: 0.75rem !important;
-        border: 2px solid #e2e8f0 !important;
-        background: #ffffff !important;
-        color: #334155 !important;
-        font-weight: 700 !important;
-        padding: 0.3rem 0.75rem !important;
-        margin-left: 0.25rem !important;
-    }
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-        background: #16a34a !important;
-        border-color: #15803d !important;
-        color: #ffffff !important;
-    }
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-        opacity: 0.45;
-        pointer-events: none;
-    }
-    table.dataTable.no-footer {
-        border-bottom: 2px solid #e2e8f0;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="space-y-6">
     <!-- Header & Filter Tahun -->
@@ -225,9 +158,6 @@
                 <h3 class="text-base font-extrabold text-slate-800">Daftar Lengkap UMP Seluruh Provinsi</h3>
                 <p class="text-xs text-slate-500">Gunakan fitur pencarian, pengurutan kolom, dan paginasi interaktif DataTables</p>
             </div>
-            <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200 self-start sm:self-auto">
-                <i class="fa-solid fa-table mr-1.5"></i> DataTables Aktif
-            </span>
         </div>
 
         <div class="overflow-x-auto">
@@ -237,7 +167,7 @@
                         <th class="py-3.5 px-4 w-16">No</th>
                         <th class="py-3.5 px-4">Provinsi</th>
                         <th class="py-3.5 px-4">Tahun</th>
-                        <th class="py-3.5 px-4 text-right">Nominal UMP</th>
+                        <th class="py-3.5 px-4">Nominal UMP</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-700"></tbody>
@@ -248,325 +178,291 @@
 @endsection
 
 @push('scripts')
-<!-- jQuery & DataTables JS -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script>    
+        let chartTop10Instance = null;
+        let chartBottom10Instance = null;
+        let chartTrenNasionalInstance = null;
+        let chartTrenProvinsiInstance = null;
+        let umpDataTable = null;
 
-<script>
-    let chartTop10Instance = null;
-    let chartBottom10Instance = null;
-    let chartTrenNasionalInstance = null;
-    let chartTrenProvinsiInstance = null;
-    let umpDataTable = null;
+        const formatRupiah = window.AppDataTable.formatRupiah;
 
-    const formatRupiah = (angka) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            maximumFractionDigits: 0
-        }).format(angka || 0);
-    };
+        const getNamaProvinsi = (item) => {
+            if (!item) return null;
+            return item.provinsi?.nama_provinsi ||
+                item.nama_provinsi ||
+                (typeof item.provinsi === 'string' ? item.provinsi : null) ||
+                null;
+        };
 
-    const getNamaProvinsi = (item) => {
-        if (!item) return null;
-        return item.provinsi?.nama_provinsi ||
-               item.nama_provinsi ||
-               (typeof item.provinsi === 'string' ? item.provinsi : null) ||
-               null;
-    };
+        const getNilaiUmp = (item) => {
+            if (!item) return 0;
+            const val = item.nominal ?? item.rata_rata ?? item.rata_rata_ump ?? item.ump_nominal ?? item.ump ?? item.nilai ?? 0;
+            return Number(val) || 0;
+        };
 
-    const getNilaiUmp = (item) => {
-        if (!item) return 0;
-        const val = item.nominal ?? item.rata_rata ?? item.rata_rata_ump ?? item.ump_nominal ?? item.ump ?? item.nilai ?? 0;
-        return Number(val) || 0;
-    };
+        async function loadStatistik(tahun) {
+            try {
+                const res = await fetch(`/api/ump/statistik?tahun=${tahun}`);
+                const json = await res.json();
+                const data = json.data || json;
 
-    // 1. Load KPI Statistik (/api/ump/statistik)
-    async function loadStatistik(tahun) {
-        try {
-            const res = await fetch(`/api/ump/statistik?tahun=${tahun}`);
-            const json = await res.json();
-            const data = json.data || json;
+                document.getElementById('stat-rata-rata').textContent = formatRupiah(data.rata_rata);
+                document.getElementById('stat-tertinggi').textContent = formatRupiah(data.tertinggi?.nominal ?? data.ump_tertinggi);
 
-            document.getElementById('stat-rata-rata').textContent = formatRupiah(data.rata_rata);
-            document.getElementById('stat-tertinggi').textContent = formatRupiah(data.tertinggi?.nominal ?? data.ump_tertinggi);
+                const provTertinggi = getNamaProvinsi(data.tertinggi) || data.provinsi_tertinggi || '-';
+                document.getElementById('stat-provinsi-tertinggi').querySelector('span').textContent = provTertinggi;
 
-            const provTertinggi =
-                getNamaProvinsi(data.tertinggi) ||
-                data.provinsi_tertinggi ||
-                '-';
-            document.getElementById('stat-provinsi-tertinggi').querySelector('span').textContent = provTertinggi;
+                document.getElementById('stat-terendah').textContent = formatRupiah(data.terendah?.nominal ?? data.ump_terendah);
 
-            document.getElementById('stat-terendah').textContent = formatRupiah(data.terendah?.nominal ?? data.ump_terendah);
+                const provTerendah = getNamaProvinsi(data.terendah) || data.provinsi_terendah || '-';
+                document.getElementById('stat-provinsi-terendah').querySelector('span').textContent = provTerendah;
 
-            const provTerendah =
-                getNamaProvinsi(data.terendah) ||
-                data.provinsi_terendah ||
-                '-';
-            document.getElementById('stat-provinsi-terendah').querySelector('span').textContent = provTerendah;
-
-            document.getElementById('stat-total-provinsi').textContent = `${data.total_provinsi ?? 38} Provinsi`;
-        } catch (err) {
-            console.error('Gagal memuat statistik:', err);
-        }
-    }
-
-    // 2. Load Perbandingan Top 10 & Bottom 10 (/api/ump/perbandingan)
-    async function loadPerbandingan(tahun) {
-        try {
-            const res = await fetch(`/api/ump/perbandingan?tahun=${tahun}`);
-            const json = await res.json();
-            const data = json.data || json;
-
-            const top10 = data.top_10 || [];
-            const bottom10 = data.bottom_10 || [];
-
-            const spanTertinggi = document.getElementById('stat-provinsi-tertinggi').querySelector('span');
-            if (top10.length > 0 && (spanTertinggi.textContent === '-' || !spanTertinggi.textContent.trim())) {
-                spanTertinggi.textContent = getNamaProvinsi(top10[0]) || '-';
+                document.getElementById('stat-total-provinsi').textContent = `${data.total_provinsi ?? 38} Provinsi`;
+            } catch (err) {
+                console.error('Gagal memuat statistik:', err);
             }
-
-            const spanTerendah = document.getElementById('stat-provinsi-terendah').querySelector('span');
-            if (bottom10.length > 0 && (spanTerendah.textContent === '-' || !spanTerendah.textContent.trim())) {
-                spanTerendah.textContent = getNamaProvinsi(bottom10[0]) || '-';
-            }
-
-            // Render Top 10
-            const ctxTop = document.getElementById('chartTop10').getContext('2d');
-            if (chartTop10Instance) chartTop10Instance.destroy();
-            chartTop10Instance = new Chart(ctxTop, {
-                type: 'bar',
-                data: {
-                    labels: top10.map(item => getNamaProvinsi(item)),
-                    datasets: [{
-                        label: 'UMP (Rp)',
-                        data: top10.map(item => getNilaiUmp(item)),
-                        backgroundColor: '#16a34a',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: {
-                            ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' }
-                        }
-                    }
-                }
-            });
-
-            // Render Bottom 10
-            const ctxBottom = document.getElementById('chartBottom10').getContext('2d');
-            if (chartBottom10Instance) chartBottom10Instance.destroy();
-            chartBottom10Instance = new Chart(ctxBottom, {
-                type: 'bar',
-                data: {
-                    labels: bottom10.map(item => getNamaProvinsi(item)),
-                    datasets: [{
-                        label: 'UMP (Rp)',
-                        data: bottom10.map(item => getNilaiUmp(item)),
-                        backgroundColor: '#0284c7',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: {
-                            ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' }
-                        }
-                    }
-                }
-            });
-        } catch (err) {
-            console.error('Gagal memuat perbandingan:', err);
         }
-    }
 
-    // 3. Load Tren Nasional & Tren Provinsi (/api/ump/tren)
-    async function loadTren(provinsiId = '') {
-        try {
-            const url = provinsiId ? `/api/ump/tren?provinsi_id=${provinsiId}` : `/api/ump/tren`;
-            const res = await fetch(url);
-            const json = await res.json();
-            const data = json.data || json;
+        // 2. Load Perbandingan Top 10 & Bottom 10 (/api/ump/perbandingan)
+        async function loadPerbandingan(tahun) {
+            try {
+                const res = await fetch(`/api/ump/perbandingan?tahun=${tahun}`);
+                const json = await res.json();
+                const data = json.data || json;
 
-            if (!provinsiId) {
-                const listNasional = Array.isArray(data)
-                    ? data
-                    : (data.tren_nasional || data.nasional || data.tren || Object.values(data).find(v => Array.isArray(v)) || []);
+                const top10 = data.top_10 || [];
+                const bottom10 = data.bottom_10 || [];
 
-                const ctxNasional = document.getElementById('chartTrenNasional').getContext('2d');
-                if (chartTrenNasionalInstance) chartTrenNasionalInstance.destroy();
-                chartTrenNasionalInstance = new Chart(ctxNasional, {
-                    type: 'line',
+                const spanTertinggi = document.getElementById('stat-provinsi-tertinggi').querySelector('span');
+                if (top10.length > 0 && (spanTertinggi.textContent === '-' || !spanTertinggi.textContent.trim())) {
+                    spanTertinggi.textContent = getNamaProvinsi(top10[0]) || '-';
+                }
+
+                const spanTerendah = document.getElementById('stat-provinsi-terendah').querySelector('span');
+                if (bottom10.length > 0 && (spanTerendah.textContent === '-' || !spanTerendah.textContent.trim())) {
+                    spanTerendah.textContent = getNamaProvinsi(bottom10[0]) || '-';
+                }
+
+                // Render Top 10
+                const ctxTop = document.getElementById('chartTop10').getContext('2d');
+                if (chartTop10Instance) chartTop10Instance.destroy();
+                chartTop10Instance = new Chart(ctxTop, {
+                    type: 'bar',
                     data: {
-                        labels: listNasional.map(d => d.tahun),
+                        labels: top10.map(item => getNamaProvinsi(item)),
                         datasets: [{
-                            label: 'Rata-rata Nasional',
-                            data: listNasional.map(d => getNilaiUmp(d)),
-                            borderColor: '#16a34a',
-                            backgroundColor: 'rgba(22, 163, 74, 0.12)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.35,
-                            pointRadius: 5,
-                            pointBackgroundColor: '#16a34a'
+                            label: 'UMP (Rp)',
+                            data: top10.map(item => getNilaiUmp(item)),
+                            backgroundColor: '#16a34a',
+                            borderRadius: 8
                         }]
                     },
                     options: {
+                        indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
-                            y: { ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' } }
+                            x: { ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' } }
                         }
                     }
                 });
-            } else {
-                const list = Array.isArray(data)
-                    ? data
-                    : (data.tren || data.riwayat || data.data || Object.values(data).find(v => Array.isArray(v)) || []);
 
-                const ctxProv = document.getElementById('chartTrenProvinsi').getContext('2d');
-                if (chartTrenProvinsiInstance) chartTrenProvinsiInstance.destroy();
-                chartTrenProvinsiInstance = new Chart(ctxProv, {
-                    type: 'line',
+                // Render Bottom 10
+                const ctxBottom = document.getElementById('chartBottom10').getContext('2d');
+                if (chartBottom10Instance) chartBottom10Instance.destroy();
+                chartBottom10Instance = new Chart(ctxBottom, {
+                    type: 'bar',
                     data: {
-                        labels: list.map(d => d.tahun),
+                        labels: bottom10.map(item => getNamaProvinsi(item)),
                         datasets: [{
-                            label: 'UMP Provinsi',
-                            data: list.map(d => getNilaiUmp(d)),
-                            borderColor: '#0284c7',
-                            backgroundColor: 'rgba(2, 132, 199, 0.12)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.35,
-                            pointRadius: 5,
-                            pointBackgroundColor: '#0284c7'
+                            label: 'UMP (Rp)',
+                            data: bottom10.map(item => getNilaiUmp(item)),
+                            backgroundColor: '#0284c7',
+                            borderRadius: 8
                         }]
                     },
                     options: {
+                        indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
-                            y: { ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' } }
+                            x: { ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' } }
                         }
                     }
                 });
+            } catch (err) {
+                console.error('Gagal memuat perbandingan:', err);
             }
-        } catch (err) {
-            console.error('Gagal memuat tren:', err);
         }
-    }
 
-    // 4. Load Daftar Provinsi untuk Dropdown Tren
-    async function loadDropdownProvinsi() {
-        try {
-            const res = await fetch('/api/ump?tahun=2026&per_page=100');
-            const json = await res.json();
-            const items = json.data?.data || json.data || [];
-            const select = document.getElementById('filter-provinsi-tren');
+        // 3. Load Tren Nasional & Tren Provinsi (/api/ump/tren)
+        async function loadTren(provinsiId = '') {
+            try {
+                const url = provinsiId ? `/api/ump/tren?provinsi_id=${provinsiId}` : `/api/ump/tren`;
+                const res = await fetch(url);
+                const json = await res.json();
+                const data = json.data || json;
 
-            select.innerHTML = items.map(item => {
-                const prov = item.provinsi || {};
-                return `<option value="${prov.id || item.provinsi_id}">${getNamaProvinsi(item)}</option>`;
-            }).join('');
+                if (!provinsiId) {
+                    const listNasional = Array.isArray(data)
+                        ? data
+                        : (data.tren_nasional || data.nasional || data.tren || Object.values(data).find(v => Array.isArray(v)) || []);
 
-            if (select.value) {
-                loadTren(select.value);
+                    const ctxNasional = document.getElementById('chartTrenNasional').getContext('2d');
+                    if (chartTrenNasionalInstance) chartTrenNasionalInstance.destroy();
+                    chartTrenNasionalInstance = new Chart(ctxNasional, {
+                        type: 'line',
+                        data: {
+                            labels: listNasional.map(d => d.tahun),
+                            datasets: [{
+                                label: 'Rata-rata Nasional',
+                                data: listNasional.map(d => getNilaiUmp(d)),
+                                borderColor: '#16a34a',
+                                backgroundColor: 'rgba(22, 163, 74, 0.12)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.35,
+                                pointRadius: 5,
+                                pointBackgroundColor: '#16a34a'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' } }
+                            }
+                        }
+                    });
+                } else {
+                    const list = Array.isArray(data)
+                        ? data
+                        : (data.tren || data.riwayat || data.data || Object.values(data).find(v => Array.isArray(v)) || []);
+
+                    const ctxProv = document.getElementById('chartTrenProvinsi').getContext('2d');
+                    if (chartTrenProvinsiInstance) chartTrenProvinsiInstance.destroy();
+                    chartTrenProvinsiInstance = new Chart(ctxProv, {
+                        type: 'line',
+                        data: {
+                            labels: list.map(d => d.tahun),
+                            datasets: [{
+                                label: 'UMP Provinsi',
+                                data: list.map(d => getNilaiUmp(d)),
+                                borderColor: '#0284c7',
+                                backgroundColor: 'rgba(2, 132, 199, 0.12)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.35,
+                                pointRadius: 5,
+                                pointBackgroundColor: '#0284c7'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { ticks: { callback: val => 'Rp ' + (val / 1000000).toFixed(1) + ' Jt' } }
+                            }
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Gagal memuat tren:', err);
             }
-        } catch (err) {
-            console.error('Gagal memuat daftar provinsi:', err);
         }
-    }
 
-    // 5. Load Tabel UMP menggunakan Library DataTables (/api/ump)
-    async function loadDataTableUmp(tahun) {
-        try {
-            const res = await fetch(`/api/ump?tahun=${tahun}&per_page=100`);
-            const json = await res.json();
-            const rows = json.data?.data || json.data || [];
+        // 4. Load Daftar Provinsi untuk Dropdown Tren
+        async function loadDropdownProvinsi() {
+            try {
+                const res = await fetch('/api/ump?tahun=2026&per_page=100');
+                const json = await res.json();
+                const items = json.data?.data || json.data || [];
+                const select = document.getElementById('filter-provinsi-tren');
 
-            if (umpDataTable) {
-                umpDataTable.destroy();
+                select.innerHTML = items.map(item => {
+                    const prov = item.provinsi || {};
+                    return `<option value="${prov.id || item.provinsi_id}">${getNamaProvinsi(item)}</option>`;
+                }).join('');
+
+                if (select.value) {
+                    loadTren(select.value);
+                }
+            } catch (err) {
+                console.error('Gagal memuat daftar provinsi:', err);
             }
+        }
 
-            const formattedData = rows.map((row, idx) => [
-                idx + 1,
-                getNamaProvinsi(row) || '-',
-                row.tahun,
-                getNilaiUmp(row)
-            ]);
+        // 5. Load Tabel UMP khusus Dashboard (mewarisi bahasa & paginasi dari app.blade.php)
+        async function loadDataTableUmp(tahun) {
+            try {
+                const res = await fetch(`/api/ump?tahun=${tahun}&per_page=100`);
+                const json = await res.json();
+                const rows = json.data?.data || json.data || [];
 
-            umpDataTable = $('#tabelUmpDataTable').DataTable({
-                data: formattedData,
-                pageLength: 10,
-                lengthMenu: [10, 20, 38],
-                language: {
-                    search: 'Cari Provinsi:',
-                    searchPlaceholder: 'Ketik nama provinsi...',
-                    lengthMenu: 'Tampilkan _MENU_ data',
-                    info: 'Menampilkan _START_ - _END_ dari _TOTAL_ provinsi',
-                    infoEmpty: 'Tidak ada data UMP',
-                    zeroRecords: 'Provinsi tidak ditemukan',
-                    paginate: {
-                        previous: 'Sebelumnya',
-                        next: 'Selanjutnya'
-                    }
-                },
-                columnDefs: [
-                    {
-                        targets: 0,
-                        className: 'py-3.5 px-4 font-bold text-slate-500'
+                if (umpDataTable) {
+                    umpDataTable.destroy();
+                }
+
+                const formattedData = rows.map((row, idx) => [
+                    idx + 1,
+                    getNamaProvinsi(row) || '-',
+                    row.tahun,
+                    getNilaiUmp(row)
+                ]);
+
+                umpDataTable = $('#tabelUmpDataTable').DataTable({
+                    data: formattedData,
+                    language: {
+                        search: 'Cari Provinsi:',
+                        searchPlaceholder: 'Ketik nama provinsi...',
+                        info: 'Menampilkan _START_ - _END_ dari _TOTAL_ provinsi',
+                        infoEmpty: 'Tidak ada data UMP',
+                        zeroRecords: 'Provinsi tidak ditemukan'
                     },
-                    {
-                        targets: 1,
-                        className: 'py-3.5 px-4 font-bold text-slate-800'
-                    },
-                    {
-                        targets: 2,
-                        className: 'py-3.5 px-4',
-                        render: (data) => `<span class="badge-pill bg-slate-100 text-slate-700">${data}</span>`
-                    },
-                    {
-                        targets: 3,
-                        className: 'py-3.5 px-4 text-right font-extrabold text-emerald-700',
-                        render: (data, type) => type === 'display' ? formatRupiah(data) : Number(data)
-                    }
-                ]
+                    columnDefs: [
+                        { targets: 0, className: 'py-3.5 px-4 font-bold text-slate-500' },
+                        { targets: 1, className: 'py-3.5 px-4 font-bold text-slate-800' },
+                        {
+                            targets: 2,
+                            className: 'py-3.5 px-4',
+                            render: (data) => `<span class="badge-pill bg-slate-100 text-slate-700">${data}</span>`
+                        },
+                        {
+                            targets: 3,
+                            className: 'py-3.5 px-4 text-right font-extrabold text-emerald-700',
+                            render: (data, type) => type === 'display' ? formatRupiah(data) : Number(data)
+                        }
+                    ]
+                });
+            } catch (err) {
+                console.error('Gagal memuat DataTables UMP:', err);
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const tahunAwal = document.getElementById('filter-tahun').value;
+            loadStatistik(tahunAwal);
+            loadPerbandingan(tahunAwal);
+            loadTren();
+            loadDropdownProvinsi();
+            loadDataTableUmp(tahunAwal);
+
+            document.getElementById('filter-tahun').addEventListener('change', (e) => {
+                const t = e.target.value;
+                loadStatistik(t);
+                loadPerbandingan(t);
+                loadDataTableUmp(t);
             });
-        } catch (err) {
-            console.error('Gagal memuat DataTables UMP:', err);
-        }
-    }
 
-    // Event Listeners
-    document.addEventListener('DOMContentLoaded', () => {
-        const tahunAwal = document.getElementById('filter-tahun').value;
-        loadStatistik(tahunAwal);
-        loadPerbandingan(tahunAwal);
-        loadTren();
-        loadDropdownProvinsi();
-        loadDataTableUmp(tahunAwal);
-
-        document.getElementById('filter-tahun').addEventListener('change', (e) => {
-            const t = e.target.value;
-            loadStatistik(t);
-            loadPerbandingan(t);
-            loadDataTableUmp(t);
+            document.getElementById('filter-provinsi-tren').addEventListener('change', (e) => {
+                if (e.target.value) loadTren(e.target.value);
+            });
         });
-
-        document.getElementById('filter-provinsi-tren').addEventListener('change', (e) => {
-            if (e.target.value) loadTren(e.target.value);
-        });
-    });
-</script>
+    </script>
 @endpush

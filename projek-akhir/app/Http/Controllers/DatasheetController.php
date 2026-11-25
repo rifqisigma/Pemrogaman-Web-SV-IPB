@@ -25,20 +25,18 @@ class DatasheetController extends Controller
         if ($provinsiId) {
             $query->where('provinsi_id', $provinsiId);
         }
-
         if ($tahunDari) {
             $query->where('tahun', '>=', $tahunDari);
         }
-
         if ($tahunSampai) {
             $query->where('tahun', '<=', $tahunSampai);
         }
 
-        $totalMatching = (clone $query)->count();
         $previewData = $query->orderBy('tahun', 'desc')
             ->orderBy('provinsi_id', 'asc')
-            ->paginate(20)
-            ->withQueryString();
+            ->get();
+
+        $totalMatching = $previewData->count();
 
         return view('datasheet.index', compact(
             'provinsis',
