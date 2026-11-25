@@ -1,94 +1,103 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Import & Export Spreadsheet UMP</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 24px; background: #f8fafc; color: #0f172a; }
-        .container { max-width: 820px; margin: 0 auto; background: #ffffff; padding: 24px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-        h1 { margin-top: 0; font-size: 22px; }
-        h2 { font-size: 16px; margin-bottom: 10px; }
-        .box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #fcfcfd; }
-        .alert-success { background: #dcfce7; color: #166534; padding: 12px 14px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #bbf7d0; }
-        .alert-error { background: #fee2e2; color: #991b1b; padding: 12px 14px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #fecaca; }
-        .btn { display: inline-block; padding: 9px 16px; border-radius: 6px; text-decoration: none; border: none; cursor: pointer; font-size: 14px; font-weight: 600; }
-        .btn-primary { background: #2563eb; color: #fff; }
-        .btn-success { background: #16a34a; color: #fff; margin-right: 8px; }
-        .btn-secondary { background: #475569; color: #fff; }
-        table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
-        th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
-        th { background: #f1f5f9; }
-        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Import &amp; Export Spreadsheet UMP</h1>
-        <p>Kelola data Upah Minimum Provinsi (UMP) melalui file Excel (<code>.xlsx</code>/<code>.xls</code>) atau CSV (<code>.csv</code>).</p>
+@extends('layouts.app')
 
-        @if (session('success'))
-            <div class="alert-success">
-                {{ session('success') }}
+@section('title', 'Import & Export Spreadsheet UMP')
+
+@section('content')
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('admin.index') }}" class="text-xs font-bold text-slate-500 hover:text-emerald-600 transition flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Panel Admin
+                </a>
             </div>
-        @endif
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight mt-1">Import &amp; Export Spreadsheet UMP</h1>
+            <p class="text-xs text-slate-500">Kelola dan sinkronisasi basis data Upah Minimum Provinsi melalui file Microsoft Excel atau CSV.</p>
+        </div>
+        <span class="badge-pill bg-emerald-100 text-emerald-800 text-xs">Spreadsheet Engine</span>
+    </div>
 
-        @if ($errors->any())
-            <div class="alert-error">
-                <strong>Terjadi kesalahan:</strong>
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <div class="box">
-            <h2>1. Export Data UMP</h2>
-            <p>Unduh seluruh data UMP yang tersimpan saat ini:</p>
-            <a href="{{ route('admin.ump.spreadsheet.export', ['format' => 'xlsx']) }}" class="btn btn-success">
-                Download Excel (.xlsx)
+    <!-- Kotak Export -->
+    <div class="card-tactile p-6 bg-white space-y-3">
+        <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-file-arrow-down text-emerald-600"></i> 1. Ekspor Data UMP Keseluruhan
+        </h2>
+        <p class="text-xs text-slate-600">
+            Unduh seluruh database UMP yang tersimpan ke dalam format spreadsheet terstruktur:
+        </p>
+        <div class="flex items-center gap-2 pt-1">
+            <a href="{{ route('admin.ump.spreadsheet.export', ['format' => 'xlsx']) }}" class="btn-tactile-primary px-4 py-2 text-xs inline-flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-file-excel"></i>
+                <span>Download Excel (.xlsx)</span>
             </a>
-            <a href="{{ route('admin.ump.spreadsheet.export', ['format' => 'csv']) }}" class="btn btn-secondary">
-                Download CSV (.csv)
+            <a href="{{ route('admin.ump.spreadsheet.export', ['format' => 'csv']) }}" class="btn-tactile-secondary px-4 py-2 text-xs inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-file-csv"></i>
+                <span>Download CSV (.csv)</span>
             </a>
         </div>
+    </div>
 
-        <div class="box">
-            <h2>2. Import Data UMP</h2>
-            <form action="{{ route('admin.ump.spreadsheet.import') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <p>
-                    <label for="file">Pilih file (.xlsx, .xls, .csv):</label><br><br>
-                    <input type="file" id="file" name="file" accept=".xlsx,.xls,.csv" required>
-                </p>
-                <button type="submit" class="btn btn-primary">Import Data</button>
-            </form>
-        </div>
+    <!-- Kotak Import -->
+    <div class="card-tactile p-6 bg-white space-y-4">
+        <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-file-arrow-up text-sky-600"></i> 2. Impor Data UMP dari File
+        </h2>
+        <p class="text-xs text-slate-600">
+            Unggah file Excel (<code>.xlsx</code>, <code>.xls</code>) atau CSV (<code>.csv</code>) untuk memperbarui atau menambahkan baris data UMP baru secara massal.
+        </p>
 
-        <div class="box">
-            <h2>3. Format Kolom Template</h2>
-            <p>Pastikan baris pertama (header) file import menggunakan nama kolom berikut:</p>
-            <table>
-                <thead>
+        <form action="{{ route('admin.ump.spreadsheet.import') }}" method="POST" enctype="multipart/form-data" class="space-y-4 bg-slate-50 p-4 rounded-2xl border-2 border-slate-200">
+            @csrf
+            <div>
+                <label for="file" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Pilih File Berkas:</label>
+                <input type="file" id="file" name="file" accept=".xlsx,.xls,.csv" required
+                       class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+            </div>
+            <div>
+                <button type="submit" class="btn-tactile-primary px-5 py-2.5 text-xs inline-flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Proses Impor File</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Kotak Format Template -->
+    <div class="card-tactile p-6 bg-white space-y-3">
+        <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-amber-600"></i> 3. Ketentuan Format Kolom Template
+        </h2>
+        <p class="text-xs text-slate-600">Pastikan baris pertama (header) file import memiliki nama kolom persis seperti berikut:</p>
+        
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-100 text-slate-600 font-mono font-bold">
                     <tr>
-                        <th>kode_provinsi</th>
-                        <th>nama_provinsi</th>
-                        <th>tahun</th>
-                        <th>nominal</th>
+                        <th class="py-2.5 px-3">kode_provinsi</th>
+                        <th class="py-2.5 px-3">nama_provinsi</th>
+                        <th class="py-2.5 px-3">tahun</th>
+                        <th class="py-2.5 px-3">nominal</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-slate-100 font-mono text-slate-700">
                     <tr>
-                        <td>32</td>
-                        <td>Jawa Barat</td>
-                        <td>2026</td>
-                        <td>2191238</td>
+                        <td class="py-2 px-3">32</td>
+                        <td class="py-2 px-3">Jawa Barat</td>
+                        <td class="py-2 px-3">2026</td>
+                        <td class="py-2 px-3">2191238</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 px-3">31</td>
+                        <td class="py-2 px-3">DKI Jakarta</td>
+                        <td class="py-2 px-3">2026</td>
+                        <td class="py-2 px-3">5396761</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
-</body>
-</html>
+
+</div>
+@endsection

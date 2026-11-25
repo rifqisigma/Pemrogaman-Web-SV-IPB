@@ -1,15 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Exports;
 
 use App\Models\Ump;
+use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
 class UmpExport implements FromCollection, WithHeadings, WithMapping
 {
-    public function collection()
+    public function collection(): Enumerable
     {
         return Ump::with('provinsi')
             ->orderBy('tahun', 'desc')
@@ -27,7 +30,7 @@ class UmpExport implements FromCollection, WithHeadings, WithMapping
         ];
     }
 
-    public function map($ump): array
+    public function map(mixed $ump): array
     {
         return [
             $ump->provinsi->kode_provinsi ?? '',

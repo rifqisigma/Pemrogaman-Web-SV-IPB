@@ -12,4 +12,14 @@ class Provinsi extends Model
     {
         return $this->hasMany(Ump::class);
     }
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
+    public function wageLogs()
+    {
+        return $this->hasMany(WageLog::class);
+    }
 }
