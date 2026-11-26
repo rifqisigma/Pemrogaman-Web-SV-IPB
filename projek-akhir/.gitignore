@@ -8,6 +8,7 @@
 /projek-akhir/public/build/
 /projek-akhir/public/hot
 /projek-akhir/storage/*.key
+.phpunit.result.cache
 
 
 .idea/
