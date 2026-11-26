@@ -189,7 +189,7 @@ class NationalWageTest extends TestCase
         $response = $this->get('/user');
         $response->assertStatus(200);
         $response->assertSee('provincialChart', false);
-        $response->assertSee('histData.map', false);
+        $response->assertSee('data.map', false);
     }
 
     public function test_service_api_page_loads_and_live_json_filters_work()

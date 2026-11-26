@@ -146,7 +146,6 @@
 </head>
 <body>
 
-    <!-- Header Dokumen Ilmiah -->
     <div class="header">
         <div class="institute">National Wage Policy & Labor Research Institute</div>
         <div class="division">Center for Applied Macroeconomics and Regional Wage Dynamics</div>
@@ -155,25 +154,22 @@
         </div>
     </div>
 
-    <!-- Judul & Penulis -->
     <h1 class="title">Laporan Ilmiah: Analisis Komparatif Upah Minimum Provinsi (UMP) dan Struktur Upah Pekerja di Indonesia Tahun {{ $year }}</h1>
     <div class="authors">
         Disusun oleh Dewan Peneliti National Wage Institute<br>
         Berdasarkan sinkronisasi regulasi ketenagakerjaan dan data sensus partisipatif tenaga kerja
     </div>
 
-    <!-- Kotak Abstrak -->
     <div class="abstract-box">
         <div class="abstract-title">Abstrak Eksekutif</div>
-        Penelitian ini menyajikan tinjauan ilmiah mengenai konvergensi dan disparitas Upah Minimum Provinsi (UMP) di 38 provinsi di Indonesia untuk tahun anggaran {{ $year }}. Evaluasi dilakukan dengan menelaah deviasi upah terhadap mean nasional, estimasi dispersi menggunakan koefisien variasi, serta cross-sectional perbandingan upah riil lintas industri. Ditemukan bahwa disparitas spasial masih dominan antara pulau Jawa bagian timur/tengah dengan wilayah metropolitan Jabodetabek dan kepulauan berbasis industri ekstraktif. Nilai Koefisien Variasi tercatat sebesar {{ $coeffVariation }}%, menggarisbawahi perlunya penyelarasan formula formula upah minimum berbasis indeks biaya hidup regional terukur.
+        Penelitian ini menyajikan tinjauan ilmiah mengenai konvergensi dan disparitas Upah Minimum Provinsi (UMP) di 38 provinsi di Indonesia untuk tahun anggaran {{ $year }}. Evaluasi dilakukan dengan menelaah deviasi upah terhadap mean nasional, estimasi dispersi menggunakan koefisien variasi, serta cross-sectional perbandingan upah riil lintas industri. Ditemukan bahwa disparitas spasial masih dominan antara pulau Jawa bagian timur/tengah dengan wilayah metropolitan Jabodetabek dan kepulauan berbasis industri ekstraktif. Nilai Koefisien Variasi tercatat sebesar {{ $cv }}%, menggarisbawahi perlunya penyelarasan formula formula upah minimum berbasis indeks biaya hidup regional terukur.
     </div>
 
-    <!-- Ringkasan Statistik -->
     <table class="stat-grid" cellspacing="5">
         <tr>
             <td>
                 <div class="stat-label">Rata-Rata UMP</div>
-                <div class="stat-val">Rp {{ number_format($avgUmp, 0, ',', '.') }}</div>
+                <div class="stat-val">Rp {{ number_format($avg, 0, ',', '.') }}</div>
             </td>
             <td>
                 <div class="stat-label">Standar Deviasi (&sigma;)</div>
@@ -209,7 +205,7 @@
         <tbody>
             @foreach($umps as $idx => $ump)
                 @php
-                    $diff = $ump->nominal - $avgUmp;
+                    $diff = $ump->nominal - $avg;
                 @endphp
                 <tr>
                     <td style="text-align: center;">{{ $loop->iteration }}</td>
@@ -224,7 +220,7 @@
         </tbody>
     </table>
 
-    @if($sectorBreakdown->isNotEmpty())
+    @if($sectors->isNotEmpty())
     <h2 class="section-title">3. Benchmark Upah Riil Pekerja Berdasarkan Sektor</h2>
     <table class="data-table">
         <thead>
@@ -235,7 +231,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($sectorBreakdown as $sb)
+            @foreach($sectors as $sb)
                 <tr>
                     <td><strong>{{ $sb->bidang_kerja }}</strong></td>
                     <td style="text-align: center;">{{ $sb->n_sampel }} Tenaga Kerja</td>
@@ -256,8 +252,8 @@
     </div>
 
     <div class="footer-note">
-        Dokumen dicetak dan diverifikasi digital oleh National Wage Platform pada: {{ $generatedDate }} WIB.<br>
-        Pemohon Unduhan: {{ $userDownloaded }} &bull; Verifikasi Hash: SHA256-{{ substr(md5($year . $userDownloaded), 0, 16) }}
+        Dokumen dicetak dan diverifikasi digital oleh National Wage Platform pada: {{ $date }} WIB.<br>
+        Pemohon Unduhan: {{ $user }} &bull; Verifikasi Hash: SHA256-{{ substr(md5($year . $user), 0, 16) }}
     </div>
 
 </body>

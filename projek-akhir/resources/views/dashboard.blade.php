@@ -3,182 +3,190 @@
 @section('title', 'Dashboard Analisis UMP')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Header & Filter Tahun -->
-    <div class="card-tactile p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-            <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200 mb-2">
-                <i class="fa-solid fa-chart-line mr-1.5"></i> DASHBOARD ANALITIK
-            </span>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Statistik & <span class="text-emerald-600">Komparasi UMP Nasional</span>
-            </h1>
-            <p class="text-sm text-slate-500 mt-1">
-                Eksplorasi grafik perbandingan antar provinsi, tren kenaikan tahunan, serta pencarian data UMP secara interaktif.
-            </p>
-        </div>
+    <div class="space-y-6">
 
-        <div class="flex items-center gap-3 bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-2.5 self-start md:self-auto">
-            <label for="filter-tahun" class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                <i class="fa-regular fa-calendar mr-1 text-emerald-600"></i> Periode:
-            </label>
-            <select id="filter-tahun" class="bg-transparent text-sm font-extrabold text-slate-800 focus:outline-none cursor-pointer">
-                <option value="2026" selected>Tahun 2026</option>
-                <option value="2025">Tahun 2025</option>
-                <option value="2024">Tahun 2024</option>
-                <option value="2023">Tahun 2023</option>
-                <option value="2022">Tahun 2022</option>
-            </select>
-        </div>
-    </div>
+        <div class="card-tactile p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200 mb-2">
+                    <i class="fa-solid fa-chart-line mr-1.5"></i> DASHBOARD ANALITIK
+                </span>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                    Statistik & <span class="text-emerald-600">Komparasi UMP Nasional</span>
+                </h1>
+                <p class="text-sm text-slate-500 mt-1">
+                    Eksplorasi grafik perbandingan antar provinsi, tren kenaikan tahunan, serta pencarian data UMP secara
+                    interaktif.
+                </p>
+            </div>
 
-    <!-- 4 Kartu Ringkasan Statistik (KPI) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Rata-rata UMP -->
-        <div class="card-tactile p-5">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Rata-rata UMP</span>
-                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
-                    <i class="fa-solid fa-calculator text-sm"></i>
-                </div>
-            </div>
-            <h3 id="stat-rata-rata" class="text-2xl font-extrabold text-slate-900 mt-3">Memuat...</h3>
-            <div class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
-                <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200">Rerata Nasional</span>
-            </div>
-        </div>
-
-        <!-- UMP Tertinggi -->
-        <div class="card-tactile p-5">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">UMP Tertinggi</span>
-                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-500 border border-amber-200 flex items-center justify-center">
-                    <i class="fa-solid fa-crown text-sm"></i>
-                </div>
-            </div>
-            <h3 id="stat-tertinggi" class="text-2xl font-extrabold text-emerald-600 mt-3">Memuat...</h3>
-            <p id="stat-provinsi-tertinggi" class="text-xs font-bold text-slate-600 mt-3 flex items-center gap-1">
-                <i class="fa-solid fa-location-dot text-emerald-500"></i> <span>-</span>
-            </p>
-        </div>
-
-        <!-- UMP Terendah -->
-        <div class="card-tactile p-5">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">UMP Terendah</span>
-                <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-500 border border-rose-200 flex items-center justify-center">
-                    <i class="fa-solid fa-arrow-trend-down text-sm"></i>
-                </div>
-            </div>
-            <h3 id="stat-terendah" class="text-2xl font-extrabold text-rose-600 mt-3">Memuat...</h3>
-            <p id="stat-provinsi-terendah" class="text-xs font-bold text-slate-600 mt-3 flex items-center gap-1">
-                <i class="fa-solid fa-location-dot text-rose-500"></i> <span>-</span>
-            </p>
-        </div>
-
-        <!-- Total Provinsi -->
-        <div class="card-tactile p-5">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Cakupan Wilayah</span>
-                <div class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center">
-                    <i class="fa-solid fa-map-location-dot text-sm"></i>
-                </div>
-            </div>
-            <h3 id="stat-total-provinsi" class="text-2xl font-extrabold text-sky-600 mt-3">0 Provinsi</h3>
-            <div class="mt-3">
-                <span class="badge-pill bg-sky-50 text-sky-700 border border-sky-200">Data Terverifikasi</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Baris Grafik 1: Top 10 & Bottom 10 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="card-tactile p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h3 class="text-base font-extrabold text-slate-800">Top 10 Provinsi UMP Tertinggi</h3>
-                    <p class="text-xs text-slate-500">Peringkat 10 wilayah dengan standar upah minimum tertinggi</p>
-                </div>
-                <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200">Top 10</span>
-            </div>
-            <div class="relative h-72">
-                <canvas id="chartTop10"></canvas>
-            </div>
-        </div>
-
-        <div class="card-tactile p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h3 class="text-base font-extrabold text-slate-800">Bottom 10 Provinsi UMP Terendah</h3>
-                    <p class="text-xs text-slate-500">Peringkat 10 wilayah dengan standar upah minimum terendah</p>
-                </div>
-                <span class="badge-pill bg-amber-50 text-amber-700 border border-amber-200">Bottom 10</span>
-            </div>
-            <div class="relative h-72">
-                <canvas id="chartBottom10"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Baris Grafik 2: Tren Nasional & Tren Spesifik Provinsi -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="card-tactile p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h3 class="text-base font-extrabold text-slate-800">Tren Rata-rata UMP Nasional</h3>
-                    <p class="text-xs text-slate-500">Perkembangan rerata upah minimum dari tahun ke tahun</p>
-                </div>
-                <span class="badge-pill bg-sky-50 text-sky-700 border border-sky-200">Historis</span>
-            </div>
-            <div class="relative h-72">
-                <canvas id="chartTrenNasional"></canvas>
-            </div>
-        </div>
-
-        <div class="card-tactile p-6">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                <div>
-                    <h3 class="text-base font-extrabold text-slate-800">Tren UMP Per Provinsi</h3>
-                    <p class="text-xs text-slate-500">Pilih provinsi untuk melihat riwayat pertumbuhannya</p>
-                </div>
-                <select id="filter-provinsi-tren" class="rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none">
-                    <option value="">Memuat provinsi...</option>
+            <div
+                class="flex items-center gap-3 bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-2.5 self-start md:self-auto">
+                <label for="filter-tahun" class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                    <i class="fa-regular fa-calendar mr-1 text-emerald-600"></i> Periode:
+                </label>
+                <select id="filter-tahun"
+                    class="bg-transparent text-sm font-extrabold text-slate-800 focus:outline-none cursor-pointer">
+                    <option value="2026" selected>Tahun 2026</option>
+                    <option value="2025">Tahun 2025</option>
+                    <option value="2024">Tahun 2024</option>
+                    <option value="2023">Tahun 2023</option>
+                    <option value="2022">Tahun 2022</option>
                 </select>
             </div>
-            <div class="relative h-72">
-                <canvas id="chartTrenProvinsi"></canvas>
+        </div>
+
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <div class="card-tactile p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Rata-rata UMP</span>
+                    <div
+                        class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
+                        <i class="fa-solid fa-calculator text-sm"></i>
+                    </div>
+                </div>
+                <h3 id="stat-rata-rata" class="text-2xl font-extrabold text-slate-900 mt-3">Memuat...</h3>
+                <div class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                    <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200">Rerata Nasional</span>
+                </div>
+            </div>
+
+
+            <div class="card-tactile p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">UMP Tertinggi</span>
+                    <div
+                        class="w-9 h-9 rounded-xl bg-amber-50 text-amber-500 border border-amber-200 flex items-center justify-center">
+                        <i class="fa-solid fa-crown text-sm"></i>
+                    </div>
+                </div>
+                <h3 id="stat-tertinggi" class="text-2xl font-extrabold text-emerald-600 mt-3">Memuat...</h3>
+                <p id="stat-provinsi-tertinggi" class="text-xs font-bold text-slate-600 mt-3 flex items-center gap-1">
+                    <i class="fa-solid fa-location-dot text-emerald-500"></i> <span>-</span>
+                </p>
+            </div>
+
+
+            <div class="card-tactile p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">UMP Terendah</span>
+                    <div
+                        class="w-9 h-9 rounded-xl bg-rose-50 text-rose-500 border border-rose-200 flex items-center justify-center">
+                        <i class="fa-solid fa-arrow-trend-down text-sm"></i>
+                    </div>
+                </div>
+                <h3 id="stat-terendah" class="text-2xl font-extrabold text-rose-600 mt-3">Memuat...</h3>
+                <p id="stat-provinsi-terendah" class="text-xs font-bold text-slate-600 mt-3 flex items-center gap-1">
+                    <i class="fa-solid fa-location-dot text-rose-500"></i> <span>-</span>
+                </p>
+            </div>
+
+
+            <div class="card-tactile p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Cakupan Wilayah</span>
+                    <div
+                        class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center">
+                        <i class="fa-solid fa-map-location-dot text-sm"></i>
+                    </div>
+                </div>
+                <h3 id="stat-total-provinsi" class="text-2xl font-extrabold text-sky-600 mt-3">0 Provinsi</h3>
+                <div class="mt-3">
+                    <span class="badge-pill bg-sky-50 text-sky-700 border border-sky-200">Data Terverifikasi</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="card-tactile p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-800">Top 10 Provinsi UMP Tertinggi</h3>
+                        <p class="text-xs text-slate-500">Peringkat 10 wilayah dengan standar upah minimum tertinggi</p>
+                    </div>
+                    <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200">Top 10</span>
+                </div>
+                <div class="relative h-72">
+                    <canvas id="chartTop10"></canvas>
+                </div>
+            </div>
+
+            <div class="card-tactile p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-800">Bottom 10 Provinsi UMP Terendah</h3>
+                        <p class="text-xs text-slate-500">Peringkat 10 wilayah dengan standar upah minimum terendah</p>
+                    </div>
+                    <span class="badge-pill bg-amber-50 text-amber-700 border border-amber-200">Bottom 10</span>
+                </div>
+                <div class="relative h-72">
+                    <canvas id="chartBottom10"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="card-tactile p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-800">Tren Rata-rata UMP Nasional</h3>
+                        <p class="text-xs text-slate-500">Perkembangan rerata upah minimum dari tahun ke tahun</p>
+                    </div>
+                    <span class="badge-pill bg-sky-50 text-sky-700 border border-sky-200">Historis</span>
+                </div>
+                <div class="relative h-72">
+                    <canvas id="chartTrenNasional"></canvas>
+                </div>
+            </div>
+
+            <div class="card-tactile p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-800">Tren UMP Per Provinsi</h3>
+                        <p class="text-xs text-slate-500">Pilih provinsi untuk melihat riwayat pertumbuhannya</p>
+                    </div>
+                    <select id="filter-provinsi-tren"
+                        class="rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none">
+                        <option value="">Memuat provinsi...</option>
+                    </select>
+                </div>
+                <div class="relative h-72">
+                    <canvas id="chartTrenProvinsi"></canvas>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card-tactile p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-800">Daftar Lengkap UMP Seluruh Provinsi</h3>
+                    <p class="text-xs text-slate-500">Gunakan fitur pencarian, pengurutan kolom, dan paginasi interaktif
+                        DataTables</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table id="tabelUmpDataTable" class="w-full text-left border-collapse">
+                    <thead>
+                        <tr
+                            class="bg-slate-50 border-b-2 border-slate-200 text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                            <th class="py-3.5 px-4 w-16">No</th>
+                            <th class="py-3.5 px-4">Provinsi</th>
+                            <th class="py-3.5 px-4">Tahun</th>
+                            <th class="py-3.5 px-4">Nominal UMP</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-700"></tbody>
+                </table>
             </div>
         </div>
     </div>
-
-    <!-- Tabel Data Lengkap dengan DataTables -->
-    <div class="card-tactile p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
-            <div>
-                <h3 class="text-base font-extrabold text-slate-800">Daftar Lengkap UMP Seluruh Provinsi</h3>
-                <p class="text-xs text-slate-500">Gunakan fitur pencarian, pengurutan kolom, dan paginasi interaktif DataTables</p>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table id="tabelUmpDataTable" class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 border-b-2 border-slate-200 text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                        <th class="py-3.5 px-4 w-16">No</th>
-                        <th class="py-3.5 px-4">Provinsi</th>
-                        <th class="py-3.5 px-4">Tahun</th>
-                        <th class="py-3.5 px-4">Nominal UMP</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-700"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
 @endsection
 
 @push('scripts')
-    <script>    
+    <script>
         let chartTop10Instance = null;
         let chartBottom10Instance = null;
         let chartTrenNasionalInstance = null;
@@ -376,7 +384,6 @@
             }
         }
 
-        // 4. Load Daftar Provinsi untuk Dropdown Tren
         async function loadDropdownProvinsi() {
             try {
                 const res = await fetch('/api/ump?tahun=2026&per_page=100');
@@ -397,7 +404,6 @@
             }
         }
 
-        // 5. Load Tabel UMP khusus Dashboard (mewarisi bahasa & paginasi dari app.blade.php)
         async function loadDataTableUmp(tahun) {
             try {
                 const res = await fetch(`/api/ump?tahun=${tahun}&per_page=100`);
@@ -444,7 +450,6 @@
             }
         }
 
-        // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
             const tahunAwal = document.getElementById('filter-tahun').value;
             loadStatistik(tahunAwal);
