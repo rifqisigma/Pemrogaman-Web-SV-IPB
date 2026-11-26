@@ -17,8 +17,8 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 Route::get('/sign-up', [AuthController::class, 'showRegister'])->name('register');
-Route::get('/sign up', fn () => redirect()->route('register'));
-Route::get('/register', fn () => redirect()->route('register'));
+Route::get('/sign up', fn() => redirect()->route('register'));
+Route::get('/register', fn() => redirect()->route('register'));
 Route::post('/sign-up', [AuthController::class, 'register'])->name('register.post');
 Route::post('/register', [AuthController::class, 'register']);
 
@@ -52,3 +52,10 @@ Route::get('/api/service', [ServiceApiController::class, 'getFlexibleData'])->na
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
+
+
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+    ]);
+});
