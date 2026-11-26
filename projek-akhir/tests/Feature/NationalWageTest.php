@@ -8,12 +8,12 @@ use App\Models\User;
 use App\Models\WageLog;
 use Database\Seeders\ProvinsiSeeder;
 use Database\Seeders\UserSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class NationalWageTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
