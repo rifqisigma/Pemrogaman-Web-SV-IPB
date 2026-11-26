@@ -5,7 +5,6 @@
 @section('content')
 <div class="space-y-8">
 
-    <!-- Header Panel Admin -->
     <section class="card-tactile p-6 bg-white flex flex-col md:flex-row md:items-center justify-between gap-5 border-l-8 border-l-amber-500">
         <div>
             <div class="flex items-center gap-2">
@@ -35,7 +34,6 @@
         </div>
     </section>
 
-    <!-- 4 Kartu Metrik Nasional -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         <div class="card-tactile p-5 bg-white">
@@ -45,7 +43,7 @@
                     <i class="fa-solid fa-users"></i>
                 </div>
             </div>
-            <div class="text-2xl font-black text-slate-900">{{ $totalUsers }} Pekerja</div>
+            <div class="text-2xl font-black text-slate-900">{{ $usersCount }} Pekerja</div>
             <p class="text-[11px] text-slate-400 mt-1">1 Akun Administrator Sistem</p>
         </div>
 
@@ -56,7 +54,7 @@
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
             </div>
-            <div class="text-2xl font-black text-amber-700">{{ $totalLogs }} Riwayat</div>
+            <div class="text-2xl font-black text-amber-700">{{ $logsCount }} Riwayat</div>
             <p class="text-[11px] text-slate-400 mt-1">Audit perubahan upah & alasan</p>
         </div>
 
@@ -67,24 +65,23 @@
                     <i class="fa-solid fa-coins"></i>
                 </div>
             </div>
-            <div class="text-2xl font-black text-emerald-700">Rp {{ number_format($avgWorkerSalary, 0, ',', '.') }}</div>
+            <div class="text-2xl font-black text-emerald-700">Rp {{ number_format($workerAvg, 0, ',', '.') }}</div>
             <p class="text-[11px] text-slate-400 mt-1">Dari seluruh log laporan pekerja</p>
         </div>
 
         <div class="card-tactile p-5 bg-white">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-                <span class="text-xs font-bold uppercase tracking-wider">Rerata UMP Nasional {{ $latestYear }}</span>
+                <span class="text-xs font-bold uppercase tracking-wider">Rerata UMP Nasional {{ $year }}</span>
                 <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-landmark"></i>
                 </div>
             </div>
-            <div class="text-2xl font-black text-sky-700">Rp {{ number_format($nationalAvgUmp, 0, ',', '.') }}</div>
+            <div class="text-2xl font-black text-sky-700">Rp {{ number_format($umpAvg, 0, ',', '.') }}</div>
             <p class="text-[11px] text-slate-400 mt-1">38 Provinsi seluruh Indonesia</p>
         </div>
 
     </section>
 
-    <!-- SECTION: RIWAYAT PENGGUNA & AUDIT LOG LENGKAP -->
     <section class="card-tactile p-6 bg-white space-y-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -101,7 +98,6 @@
             </span>
         </div>
 
-        <!-- Filter Bar -->
         <form action="{{ route('admin.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200">
             <div>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, jabatan, atau alasan..."
@@ -111,7 +107,7 @@
             <div>
                 <select name="provinsi_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium focus:border-amber-500 focus:outline-none">
                     <option value="">-- Semua Provinsi --</option>
-                    @foreach($provinsis as $p)
+                    @foreach($provinces as $p)
                         <option value="{{ $p->id }}" {{ request('provinsi_id') == $p->id ? 'selected' : '' }}>
                             {{ $p->nama_provinsi }}
                         </option>
@@ -140,7 +136,6 @@
             </div>
         </form>
 
-        <!-- Tabel Audit Log -->
         <div class="overflow-x-auto rounded-2xl border-2 border-slate-200">
             <table class="w-full text-left text-xs" data-datatable data-server-paginated>
                 <thead class="bg-slate-100/90 border-b-2 border-slate-200 text-slate-600 font-extrabold uppercase tracking-wider">
@@ -161,33 +156,28 @@
                         @endphp
                         <tr class="hover:bg-slate-50/80 transition-colors">
                             
-                            <!-- Waktu & IP -->
                             <td class="py-3 px-4 whitespace-nowrap">
                                 <div class="font-bold text-slate-900">{{ $log->created_at->format('d M Y') }}</div>
                                 <div class="text-[10px] text-slate-400 font-mono">{{ $log->created_at->format('H:i:s') }} WIB</div>
                                 <div class="text-[9px] text-slate-400 mt-0.5"><i class="fa-solid fa-network-wired text-[8px] mr-1"></i>{{ $log->ip_address ?? '127.0.0.1' }}</div>
                             </td>
 
-                            <!-- Pengguna -->
                             <td class="py-3 px-4">
                                 <div class="font-extrabold text-slate-900">{{ $log->user ? $log->user->name : 'User #' . $log->user_id }}</div>
                                 <div class="text-[11px] text-slate-500 font-mono">@<span>{{ $log->user ? $log->user->username : '-' }}</span></div>
                             </td>
 
-                            <!-- Wilayah -->
                             <td class="py-3 px-4 whitespace-nowrap">
                                 <div class="font-bold text-slate-800">{{ $log->provinsi ? $log->provinsi->nama_provinsi : '-' }}</div>
                                 <span class="badge-pill bg-slate-100 text-slate-500 text-[9px] mt-0.5">Tahun {{ $log->tahun }}</span>
                             </td>
 
-                            <!-- Jabatan & Sektor -->
                             <td class="py-3 px-4">
                                 <div class="font-bold text-slate-900">{{ $log->jabatan }}</div>
                                 <div class="text-[11px] text-slate-500">{{ $log->bidang_kerja }}</div>
                                 <span class="text-[10px] text-slate-400">({{ $log->status_pekerjaan ?? 'Tetap' }})</span>
                             </td>
 
-                            <!-- Perubahan Upah -->
                             <td class="py-3 px-4 text-right whitespace-nowrap">
                                 <div class="font-black text-emerald-700 text-sm">
                                     Rp {{ number_format($log->gaji_nominal, 0, ',', '.') }}
@@ -206,7 +196,6 @@
                                 @endif
                             </td>
 
-                            <!-- Alasan Pembaruan -->
                             <td class="py-3 px-4 max-w-sm">
                                 <div class="bg-amber-50/70 border border-amber-200 text-amber-950 p-2 rounded-xl text-xs leading-relaxed">
                                     <i class="fa-solid fa-quote-left text-[10px] text-amber-400 mr-1"></i>
@@ -214,7 +203,6 @@
                                 </div>
                             </td>
 
-                            <!-- Aksi Hapus Admin (Role Write Admin) -->
                             <td class="py-3 px-4 text-center whitespace-nowrap">
                                 <form action="{{ route('admin.wage-logs.destroy', $log->id) }}" method="POST" class="inline"
                                       onsubmit="return confirm('Apakah Anda yakin ingin menghapus log pembaruan upah (#{{ $log->id }}) milik {{ addslashes($log->user ? $log->user->name : 'User') }}? Tindakan ini tidak dapat dibatalkan.');">
@@ -234,19 +222,17 @@
             </table>
         </div>
 
-        <!-- Pagination -->
         <div class="pt-2">
             {{ $logs->links() }}
         </div>
     </section>
 
-    <!-- SECTION: DIREKTORI PENGGUNA TERDAFTAR (10 USER + ADMIN) -->
     <section class="card-tactile p-6 bg-white space-y-4">
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="font-black text-slate-900 text-base flex items-center gap-2">
                     <i class="fa-solid fa-id-badge text-emerald-600"></i>
-                    Direktori Akun Pengguna Terdaftar ({{ $usersList->count() }} Akun)
+                    Direktori Akun Pengguna Terdaftar ({{ $users->count() }} Akun)
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">Daftar akun pengguna resmi beserta status profil dan total log yang telah dikontribusikan.</p>
             </div>
@@ -267,7 +253,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                    @foreach($usersList as $u)
+                    @foreach($users as $u)
                         <tr class="hover:bg-slate-50/80 transition-colors {{ $u->isAdmin() ? 'bg-amber-50/30' : '' }}">
                             <td class="py-3 px-4 text-center font-bold text-slate-400">#{{ $u->id }}</td>
                             <td class="py-3 px-4">

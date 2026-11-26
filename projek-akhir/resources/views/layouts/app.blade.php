@@ -6,29 +6,22 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'National Wage') &bull; Pusat Analisis Upah & UMP Indonesia</title>
     
-    <!-- Google Fonts: Plus Jakarta Sans for friendly modern feel -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CDN + FontAwesome Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Leaflet Map CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
-    <!-- DataTable CSS & JS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-    
 
     <script>
         tailwind.config = {
@@ -71,7 +64,6 @@
             color: #1e293b;
         }
 
-        /* Tactile Duolingo/Gojek-style buttons and cards */
         .btn-tactile-primary {
             background-color: #16a34a;
             color: #ffffff;
@@ -207,12 +199,10 @@
 </head>
 <body class="min-h-full flex flex-col antialiased selection:bg-emerald-100 selection:text-emerald-900">
 
-    <!-- Navbar Sticky -->
     <header class="bg-white/95 backdrop-blur-md sticky top-0 z-40 border-b-2 border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 
-                <!-- Logo & Brand -->
                 <div class="flex items-center gap-8">
                     <a href="{{ route('home') }}" class="flex items-center gap-3 group">
                         <div class="w-12 h-12 rounded-2xl bg-emerald-500 border-b-4 border-emerald-700 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
@@ -227,7 +217,6 @@
                         </div>
                     </a>
 
-                    <!-- Nav Links Desktop -->
                     <nav class="hidden md:flex items-center gap-1">
                         <a href="{{ route('home') }}" 
                            class="px-4 py-2 rounded-xl text-sm font-bold transition-all {{ request()->routeIs('home') ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
@@ -265,7 +254,6 @@
                     </nav>
                 </div>
 
-                <!-- Right Action Buttons -->
                 <div class="flex items-center gap-3">
                     @guest
                         <a href="{{ route('login') }}" class="btn-tactile-secondary px-4 py-2 text-sm inline-flex items-center gap-1.5">
@@ -277,7 +265,6 @@
                             <span>Daftar</span>
                         </a>
                     @else
-                        <!-- Logged In User Pill -->
                         <div class="hidden sm:flex items-center gap-3 bg-slate-50 border-2 border-slate-200 rounded-2xl px-3 py-1.5">
                             <div class="w-8 h-8 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs uppercase">
                                 {{ substr(Auth::user()->name, 0, 2) }}
@@ -294,9 +281,8 @@
                             </div>
                         </div>
 
-                        <!-- Logout Trigger Button -->
                         <button type="button" 
-                                onclick="openLogoutModal()"
+                                onclick="openLogoutModal()" 
                                 class="btn-tactile-secondary px-3.5 py-2 text-xs text-rose-600 hover:text-rose-700 hover:border-rose-300"
                                 title="Keluar / Logout">
                             <i class="fa-solid fa-power-off"></i>
@@ -308,7 +294,6 @@
             </div>
         </div>
 
-        <!-- Mobile Nav Bar Strip -->
         <div class="md:hidden border-t border-slate-200 bg-white px-4 py-2 flex items-center justify-around text-xs font-bold">
             <a href="{{ route('home') }}" class="flex flex-col items-center py-1 {{ request()->routeIs('home') ? 'text-emerald-600 font-extrabold' : 'text-slate-600' }}">
                 <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>
@@ -345,7 +330,6 @@
         </div>
     </header>
 
-    <!-- Flash Notifications -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 w-full">
         @if(session('success'))
             <div class="card-tactile bg-emerald-50 border-emerald-300 text-emerald-900 p-4 mb-4 flex items-center justify-between shadow-sm">
@@ -404,12 +388,10 @@
         @endif
     </div>
 
-    <!-- Main Content -->
     <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         @yield('content')
     </main>
 
-    <!-- Footer -->
     <footer class="bg-white border-t-2 border-slate-200 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -467,7 +449,6 @@
         </div>
     </footer>
 
-    <!-- Custom Modal Konfirmasi Logout -->
     @auth
     <div id="logoutModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
         <div class="card-tactile w-full max-w-md p-6 bg-white shadow-2xl transform transition-all">
@@ -525,7 +506,6 @@
     @endauth
 
     <script>
-        // 1. Konfigurasi Default Global untuk Semua DataTables
         if (typeof $.fn.dataTable !== 'undefined') {
             $.extend(true, $.fn.dataTable.defaults, {
                 pageLength: 10,
@@ -548,39 +528,30 @@
             });
         }
 
-        // 2. Helper Global yang dapat dipakai di berbagai halaman (Dashboard, Datasheet, dll.)
         window.AppDataTable = {
-            formatRupiah: function (angka) {
+            formatRupiah: function (val) {
                 return new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
                     maximumFractionDigits: 0
-                }).format(angka || 0);
+                }).format(val || 0);
             },
 
-            /**
-             * Mendaftarkan filter range tahun ke DataTables tertentu secara reusable
-             * @param {string} tableId - ID elemen <table> (tanpa tanda #)
-             * @param {string} minSelector - Selector input/select tahun awal (contoh: '#tahun_dari')
-             * @param {string} maxSelector - Selector input/select tahun akhir (contoh: '#tahun_sampai')
-             * @param {number} yearColIndex - Indeks kolom tahun pada tabel (dimulai dari 0)
-             */
-            registerYearRangeFilter: function (tableId, minSelector, maxSelector, yearColIndex) {
+            registerYearRangeFilter: function (tableId, minSelector, maxSelector, colIdx) {
                 $.fn.dataTable.ext.search.push(function (settings, data) {
                     if (settings.nTable.id !== tableId) return true;
 
-                    const minYear = parseInt($(minSelector).val(), 10);
-                    const maxYear = parseInt($(maxSelector).val(), 10);
+                    const min = parseInt($(minSelector).val(), 10);
+                    const max = parseInt($(maxSelector).val(), 10);
                     
-                    // Bersihkan tag HTML jika sel kolom dibungkus badge/span
-                    const rawText = String(data[yearColIndex]).replace(/<[^>]*>?/gm, '').trim();
-                    const rowYear = parseInt(rawText, 10) || 0;
+                    const text = String(data[colIdx]).replace(/<[^>]*>?/gm, '').trim();
+                    const yr = parseInt(text, 10) || 0;
 
                     if (
-                        (isNaN(minYear) && isNaN(maxYear)) ||
-                        (isNaN(minYear) && rowYear <= maxYear) ||
-                        (minYear <= rowYear && isNaN(maxYear)) ||
-                        (minYear <= rowYear && rowYear <= maxYear)
+                        (isNaN(min) && isNaN(max)) ||
+                        (isNaN(min) && yr <= max) ||
+                        (min <= yr && isNaN(max)) ||
+                        (min <= yr && yr <= max)
                     ) {
                         return true;
                     }

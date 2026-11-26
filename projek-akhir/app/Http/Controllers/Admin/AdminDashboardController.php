@@ -14,16 +14,14 @@ class AdminDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. National Statistics
-        $totalUsers = User::where('role', 'user')->count();
-        $totalLogs = WageLog::count();
-        $avgWorkerSalary = WageLog::avg('gaji_nominal') ?? 0;
+        $usersCount = User::where('role', 'user')->count();
+        $logsCount = WageLog::count();
+        $workerAvg = WageLog::avg('gaji_nominal') ?? 0;
         
-        $latestYear = Ump::max('tahun') ?? 2026;
-        $nationalAvgUmp = Ump::where('tahun', $latestYear)->avg('nominal') ?? 0;
-        $totalProvinces = Provinsi::count();
+        $year = Ump::max('tahun') ?? 2026;
+        $umpAvg = Ump::where('tahun', $year)->avg('nominal') ?? 0;
+        $provCount = Provinsi::count();
 
-        // 2. Logs with Filters
         $query = WageLog::with(['user', 'provinsi'])->orderBy('created_at', 'desc');
 
         if ($request->filled('provinsi_id')) {
@@ -49,45 +47,43 @@ class AdminDashboardController extends Controller
 
         $logs = $query->paginate(15)->withQueryString();
 
-        // 3. User Directory (Users & their latest wage status)
-        $usersList = User::with('provinsi')
+        $users = User::with('provinsi')
             ->withCount('wageLogs')
-            ->orderBy('role', 'asc') // admin first
+            ->orderBy('role', 'asc')
             ->orderBy('id', 'asc')
             ->get();
 
-        // 4. Sektor aggregation for admin analytics chart
-        $sectorBreakdown = WageLog::select('bidang_kerja', DB::raw('AVG(gaji_nominal) as avg_nominal'), DB::raw('COUNT(*) as total'))
+        $sectors = WageLog::select('bidang_kerja', DB::raw('AVG(gaji_nominal) as avg_nominal'), DB::raw('COUNT(*) as total'))
             ->groupBy('bidang_kerja')
             ->orderBy('avg_nominal', 'desc')
             ->get();
 
-        $provinsis = Provinsi::orderBy('nama_provinsi')->get();
+        $provinces = Provinsi::orderBy('nama_provinsi')->get();
         $years = WageLog::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
 
         return view('admin.index', compact(
-            'totalUsers',
-            'totalLogs',
-            'avgWorkerSalary',
-            'nationalAvgUmp',
-            'latestYear',
-            'totalProvinces',
+            'usersCount',
+            'logsCount',
+            'workerAvg',
+            'umpAvg',
+            'year',
+            'provCount',
             'logs',
-            'usersList',
-            'sectorBreakdown',
-            'provinsis',
+            'users',
+            'sectors',
+            'provinces',
             'years'
         ));
     }
 
     public function destroyLog(WageLog $log)
     {
-        $logId = $log->id;
-        $userName = $log->user ? $log->user->name : "User #{$log->user_id}";
+        $id = $log->id;
+        $name = $log->user ? $log->user->name : "User #{$log->user_id}";
 
         $log->delete();
 
         return redirect()->route('admin.index')
-            ->with('success', "Log riwayat pembaruan upah (#{$logId}) milik {$userName} berhasil dihapus dari sistem audit.");
+            ->with('success', "Log riwayat pembaruan upah (#{$id}) milik {$name} berhasil dihapus dari sistem audit.");
     }
 }

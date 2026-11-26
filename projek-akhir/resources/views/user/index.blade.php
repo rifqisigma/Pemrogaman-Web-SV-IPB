@@ -5,7 +5,6 @@
 @section('content')
 <div class="space-y-8">
 
-    <!-- Header Profil Ringkas -->
     <section class="card-tactile p-6 bg-white flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div class="flex items-center gap-4">
             <div class="w-16 h-16 rounded-2xl bg-emerald-100 border-2 border-emerald-300 text-emerald-800 flex items-center justify-center text-2xl font-black uppercase shadow-sm">
@@ -23,7 +22,7 @@
                 <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1.5 font-medium">
                     <span><i class="fa-solid fa-envelope text-slate-400 mr-1"></i> {{ $user->email }}</span>
                     <span>&bull;</span>
-                    <span><i class="fa-solid fa-location-dot text-emerald-500 mr-1"></i> {{ $userProvinsi ? $userProvinsi->nama_provinsi : 'Provinsi belum diatur' }}</span>
+                    <span><i class="fa-solid fa-location-dot text-emerald-500 mr-1"></i> {{ $prov ? $prov->nama_provinsi : 'Provinsi belum diatur' }}</span>
                     <span>&bull;</span>
                     <span><i class="fa-solid fa-briefcase text-slate-400 mr-1"></i> {{ $user->jabatan ?? 'Jabatan belum diisi' }} ({{ $user->bidang_kerja ?? '-' }})</span>
                 </div>
@@ -38,29 +37,27 @@
         </div>
     </section>
 
-    <!-- DASHBOARD UPAH REGIONAL BERDASARKAN PROVINSI USER -->
     <section class="space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
                 <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                     <i class="fa-solid fa-chart-column text-emerald-600"></i>
-                    Dashboard Upah Regional: {{ $userProvinsi ? $userProvinsi->nama_provinsi : 'Semua Wilayah' }}
+                    Dashboard Upah Regional: {{ $prov ? $prov->nama_provinsi : 'Semua Wilayah' }}
                 </h2>
                 <p class="text-xs text-slate-500">
                     Analisis komparatif gaji Anda terhadap ketetapan Upah Minimum Provinsi (UMP) dan dinamika historis wilayah Anda.
                 </p>
             </div>
-            @if($userProvinsi)
+            @if($prov)
                 <span class="badge-pill bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs">
-                    Kode Provinsi: {{ $userProvinsi->kode_provinsi }}
+                    Kode Provinsi: {{ $prov->kode_provinsi }}
                 </span>
             @endif
         </div>
 
-        @if($userProvinsi)
+        @if($prov)
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 
-                <!-- Card 1: Gaji Anda -->
                 <div class="card-tactile p-5 bg-white flex flex-col justify-between">
                     <div>
                         <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Gaji Pokok Anda Saat Ini</span>
@@ -76,52 +73,49 @@
                     </div>
                 </div>
 
-                <!-- Card 2: UMP Provinsi Anda -->
                 <div class="card-tactile p-5 bg-white flex flex-col justify-between">
                     <div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">UMP {{ $userProvinsi->nama_provinsi }} ({{ $latestUmp ? $latestUmp->tahun : date('Y') }})</span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">UMP {{ $prov->nama_provinsi }} ({{ $ump ? $ump->tahun : date('Y') }})</span>
                         <div class="text-2xl font-black text-emerald-700 mt-1">
-                            {{ $latestUmp ? 'Rp ' . number_format($latestUmp->nominal, 0, ',', '.') : '-' }}
+                            {{ $ump ? 'Rp ' . number_format($ump->nominal, 0, ',', '.') : '-' }}
                         </div>
                         <div class="text-xs text-slate-500 mt-1">
                             Standar acuan resmi pemerintah provinsi
                         </div>
                     </div>
                     <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400">
-                        Ketetapan UMP Regional {{ $latestUmp ? $latestUmp->tahun : '' }}
+                        Ketetapan UMP Regional {{ $ump ? $ump->tahun : '' }}
                     </div>
                 </div>
 
-                <!-- Card 3: Komparasi vs UMP -->
                 <div class="card-tactile p-5 bg-white flex flex-col justify-between">
                     <div>
                         <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Status Komparasi vs UMP</span>
-                        @if(!is_null($umpPercentDiff))
-                            <div class="text-2xl font-black {{ $umpPercentDiff >= 0 ? 'text-emerald-600' : 'text-rose-600' }} mt-1">
-                                {{ $umpPercentDiff >= 0 ? '+' : '' }}{{ $umpPercentDiff }}%
+                        @if(!is_null($diffPct))
+                            <div class="text-2xl font-black {{ $diffPct >= 0 ? 'text-emerald-600' : 'text-rose-600' }} mt-1">
+                                {{ $diffPct >= 0 ? '+' : '' }}{{ $diffPct }}%
                             </div>
-                            <div class="text-xs font-bold {{ $umpDifference >= 0 ? 'text-emerald-700' : 'text-rose-700' }} mt-1">
-                                {{ $umpDifference >= 0 ? 'Rp ' . number_format($umpDifference, 0, ',', '.') . ' di atas UMP' : 'Rp ' . number_format(abs($umpDifference), 0, ',', '.') . ' di bawah UMP' }}
+                            <div class="text-xs font-bold {{ $diff >= 0 ? 'text-emerald-700' : 'text-rose-700' }} mt-1">
+                                {{ $diff >= 0 ? 'Rp ' . number_format($diff, 0, ',', '.') . ' di atas UMP' : 'Rp ' . number_format(abs($diff), 0, ',', '.') . ' di bawah UMP' }}
                             </div>
                         @else
                             <div class="text-sm font-bold text-slate-400 mt-2">Isi gaji Anda untuk menghitung komparasi</div>
                         @endif
                     </div>
                     <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400">
-                        {{ $umpPercentDiff >= 0 ? 'Upah Anda memenuhi ketentuan di atas standar batas minimum.' : 'Peringatan: Berada di bawah standar batas minimum regional.' }}
+                        {{ $diffPct >= 0 ? 'Upah Anda memenuhi ketentuan di atas standar batas minimum.' : 'Peringatan: Berada di bawah standar batas minimum regional.' }}
                     </div>
                 </div>
 
             </div>
 
-            <!-- Grafik Tren Regional UMP Provinsi User -->
-            @if($provincialHistorical->isNotEmpty())
+            @if($history->isNotEmpty())
             <div class="card-tactile p-6 bg-white space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="font-black text-slate-900 text-sm flex items-center gap-2">
                             <i class="fa-solid fa-chart-line text-emerald-600"></i>
-                            Riwayat Kenaikan UMP Provinsi {{ $userProvinsi->nama_provinsi }}
+                            Riwayat Kenaikan UMP Provinsi {{ $prov->nama_provinsi }}
                         </h3>
                         <p class="text-xs text-slate-500 mt-0.5">Grafik perkembangan upah minimum wilayah kerja Anda</p>
                     </div>
@@ -143,7 +137,6 @@
         @endif
     </section>
 
-    <!-- FORM PENGISIAN DATA BIODATA / UPAH KERJA -->
     <section id="formUpdate" class="card-tactile p-6 sm:p-8 bg-white space-y-6">
         <div>
             <div class="flex items-center gap-2">
@@ -172,7 +165,7 @@
                     <select name="provinsi_id" id="provinsi_id" required
                             class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none">
                         <option value="">-- Pilih Provinsi Bekerja --</option>
-                        @foreach($provinsis as $p)
+                        @foreach($provinces as $p)
                             <option value="{{ $p->id }}" {{ old('provinsi_id', $user->provinsi_id) == $p->id ? 'selected' : '' }}>
                                 {{ $p->nama_provinsi }}
                             </option>
@@ -226,7 +219,6 @@
                           placeholder="Jelaskan mengapa Anda memperbarui data upah (contoh: Kenaikan gaji tahunan 2026, Penyesuaian UMP wilayah, Promosi jabatan ke level Senior, dll.)"
                           class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none">{{ old('alasan_pembaruan') }}</textarea>
 
-                <!-- Quick reason tags -->
                 <div class="flex flex-wrap items-center gap-1.5 mt-2">
                     <span class="text-[11px] font-bold text-slate-400">Pilih Cepat:</span>
                     <button type="button" onclick="setReason('Kenaikan gaji tahunan & evaluasi kinerja')" class="px-2 py-0.5 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded text-[11px] font-medium text-slate-600 transition">Kenaikan Tahunan</button>
@@ -245,7 +237,6 @@
         </form>
     </section>
 
-    <!-- RIWAYAT LOG PEMBARUAN PRIBADI USER -->
     <section class="card-tactile p-6 bg-white space-y-4">
         <div class="flex items-center justify-between">
             <div>
@@ -255,10 +246,10 @@
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">Catatan jejak waktu (audit log) perubahan data kerja Anda</p>
             </div>
-            <span class="badge-pill bg-slate-100 text-slate-700 text-xs">{{ $myLogs->count() }} Riwayat</span>
+            <span class="badge-pill bg-slate-100 text-slate-700 text-xs">{{ $logs->count() }} Riwayat</span>
         </div>
 
-        @if($myLogs->isEmpty())
+        @if($logs->isEmpty())
             <div class="p-8 text-center text-slate-400 bg-slate-50 rounded-xl border border-slate-200">
                 <i class="fa-regular fa-folder-open text-3xl mb-2 text-slate-300"></i>
                 <p class="text-xs font-semibold">Belum ada catatan riwayat pembaruan upah.</p>
@@ -277,7 +268,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                        @foreach($myLogs as $log)
+                        @foreach($logs as $log)
                             <tr class="hover:bg-slate-50/80 transition-colors">
                                 <td class="py-3 px-4 text-slate-500 whitespace-nowrap">
                                     <div class="font-bold text-slate-800">{{ $log->created_at->format('d M Y') }}</div>
@@ -317,22 +308,22 @@
         document.getElementById('alasan_pembaruan').value = text;
     }
 
-    @if($provincialHistorical->isNotEmpty())
+    @if($history->isNotEmpty())
         document.addEventListener('DOMContentLoaded', function () {
-            const chartCanvas = document.getElementById('provincialChart');
-            if (!chartCanvas) return;
+            const canvas = document.getElementById('provincialChart');
+            if (!canvas) return;
 
-            const ctxProv = chartCanvas.getContext('2d');
-            const rawData = @json($provincialHistorical);
-            const histData = Array.isArray(rawData) ? rawData : Object.values(rawData);
+            const ctx = canvas.getContext('2d');
+            const raw = @json($history);
+            const data = Array.isArray(raw) ? raw : Object.values(raw);
 
-            new Chart(ctxProv, {
+            new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: histData.map(d => d.tahun),
+                    labels: data.map(d => d.tahun),
                     datasets: [{
                         label: 'UMP (Rp)',
-                        data: histData.map(d => Number(d.nominal)),
+                        data: data.map(d => Number(d.nominal)),
                         borderColor: '#10b981',
                         backgroundColor: 'rgba(16, 185, 129, 0.12)',
                         borderWidth: 3,

@@ -14,63 +14,8 @@ class ScientificReportController extends Controller
 {
     public function index(Request $request)
     {
-        $availableYears = Ump::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
-        $selectedYear = (int) $request->input('tahun', $availableYears->first() ?? 2026);
-
-        // Core dataset for this year
-        $umps = Ump::with('provinsi')
-            ->where('tahun', $selectedYear)
-            ->get()
-            ->sortByDesc('nominal');
-
-        $count = $umps->count();
-        $avgUmp = $count > 0 ? $umps->avg('nominal') : 0;
-        $highest = $umps->first();
-        $lowest = $umps->last();
-
-        // Calculate standard deviation of UMP to give scientific statistical depth
-        $variance = 0;
-        if ($count > 1) {
-            foreach ($umps as $u) {
-                $variance += pow($u->nominal - $avgUmp, 2);
-            }
-            $stdDev = sqrt($variance / ($count - 1));
-            $coeffVariation = round(($stdDev / $avgUmp) * 100, 2);
-        } else {
-            $stdDev = 0;
-            $coeffVariation = 0;
-        }
-
-        // Sektor aggregates
-        $sectorBreakdown = WageLog::select('bidang_kerja', DB::raw('AVG(gaji_nominal) as rerata_upah'), DB::raw('COUNT(*) as n_sampel'))
-            ->groupBy('bidang_kerja')
-            ->orderBy('rerata_upah', 'desc')
-            ->get();
-
-        return view('scientific-report.index', compact(
-            'availableYears',
-            'selectedYear',
-            'umps',
-            'count',
-            'avgUmp',
-            'highest',
-            'lowest',
-            'stdDev',
-            'coeffVariation',
-            'sectorBreakdown'
-        ));
-    }
-
-    public function downloadPdf(Request $request)
-    {
-        // Enforce role filtration: guests cannot download
-        if (!Auth::check()) {
-            return redirect()->route('login')
-                ->with('warning', 'Akses Terbatas: Silakan masuk atau daftar terlebih dahulu untuk mengunduh dokumen Laporan Ilmiah resmi (PDF).');
-        }
-
-        $availableYears = Ump::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
-        $year = (int) $request->input('tahun', $availableYears->first() ?? 2026);
+        $years = Ump::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
+        $year = (int) $request->input('tahun', $years->first() ?? 2026);
 
         $umps = Ump::with('provinsi')
             ->where('tahun', $year)
@@ -78,42 +23,93 @@ class ScientificReportController extends Controller
             ->sortByDesc('nominal');
 
         $count = $umps->count();
-        $avgUmp = $count > 0 ? $umps->avg('nominal') : 0;
+        $avg = $count > 0 ? $umps->avg('nominal') : 0;
         $highest = $umps->first();
         $lowest = $umps->last();
 
         $variance = 0;
         if ($count > 1) {
             foreach ($umps as $u) {
-                $variance += pow($u->nominal - $avgUmp, 2);
+                $variance += pow($u->nominal - $avg, 2);
             }
             $stdDev = sqrt($variance / ($count - 1));
-            $coeffVariation = round(($stdDev / $avgUmp) * 100, 2);
+            $cv = round(($stdDev / $avg) * 100, 2);
         } else {
             $stdDev = 0;
-            $coeffVariation = 0;
+            $cv = 0;
         }
 
-        $sectorBreakdown = WageLog::select('bidang_kerja', DB::raw('AVG(gaji_nominal) as rerata_upah'), DB::raw('COUNT(*) as n_sampel'))
+        $sectors = WageLog::select('bidang_kerja', DB::raw('AVG(gaji_nominal) as rerata_upah'), DB::raw('COUNT(*) as n_sampel'))
             ->groupBy('bidang_kerja')
             ->orderBy('rerata_upah', 'desc')
             ->get();
 
-        $generatedDate = now()->translatedFormat('d F Y, H:i');
-        $userDownloaded = Auth::user()->name;
+        return view('scientific-report.index', compact(
+            'years',
+            'year',
+            'umps',
+            'count',
+            'avg',
+            'highest',
+            'lowest',
+            'stdDev',
+            'cv',
+            'sectors'
+        ));
+    }
+
+    public function downloadPdf(Request $request)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login')
+                ->with('warning', 'Akses Terbatas: Silakan masuk atau daftar terlebih dahulu untuk mengunduh dokumen Laporan Ilmiah resmi (PDF).');
+        }
+
+        $years = Ump::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
+        $year = (int) $request->input('tahun', $years->first() ?? 2026);
+
+        $umps = Ump::with('provinsi')
+            ->where('tahun', $year)
+            ->get()
+            ->sortByDesc('nominal');
+
+        $count = $umps->count();
+        $avg = $count > 0 ? $umps->avg('nominal') : 0;
+        $highest = $umps->first();
+        $lowest = $umps->last();
+
+        $variance = 0;
+        if ($count > 1) {
+            foreach ($umps as $u) {
+                $variance += pow($u->nominal - $avg, 2);
+            }
+            $stdDev = sqrt($variance / ($count - 1));
+            $cv = round(($stdDev / $avg) * 100, 2);
+        } else {
+            $stdDev = 0;
+            $cv = 0;
+        }
+
+        $sectors = WageLog::select('bidang_kerja', DB::raw('AVG(gaji_nominal) as rerata_upah'), DB::raw('COUNT(*) as n_sampel'))
+            ->groupBy('bidang_kerja')
+            ->orderBy('rerata_upah', 'desc')
+            ->get();
+
+        $date = now()->translatedFormat('d F Y, H:i');
+        $user = Auth::user()->name;
 
         $pdf = Pdf::loadView('scientific-report.pdf', compact(
             'year',
             'umps',
             'count',
-            'avgUmp',
+            'avg',
             'highest',
             'lowest',
             'stdDev',
-            'coeffVariation',
-            'sectorBreakdown',
-            'generatedDate',
-            'userDownloaded'
+            'cv',
+            'sectors',
+            'date',
+            'user'
         ))->setPaper('a4', 'portrait');
 
         $filename = "Laporan_Ilmiah_Upah_Nasional_{$year}.pdf";

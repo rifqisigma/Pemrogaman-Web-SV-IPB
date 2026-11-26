@@ -5,12 +5,11 @@
 @section('content')
 <div class="space-y-8">
 
-    <!-- Hero Section (Inspired by Microsoft AI Economy Institute Report, friendly Duolingo/Gojek aesthetic) -->
     <section class="card-tactile p-6 sm:p-8 bg-gradient-to-br from-white via-emerald-50/20 to-slate-50 relative overflow-hidden">
         <div class="max-w-3xl">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 mb-3">
                 <i class="fa-solid fa-satellite-dish text-emerald-600 animate-pulse"></i>
-                <span>Laporan Observasi Upah Kerja Nasional {{ $selectedYear }}</span>
+                <span>Laporan Observasi Upah Kerja Nasional {{ $year }}</span>
             </div>
             <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
                 Peta Kondisi Upah & <span class="text-emerald-600 underline decoration-emerald-300 decoration-wavy">UMP Indonesia</span>
@@ -20,15 +19,14 @@
             </p>
         </div>
 
-        <!-- Filter Tahun Sticky / Card Controls -->
         <div class="mt-6 pt-5 border-t-2 border-slate-200/80 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-2">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Pilih Periode:</span>
                 <form action="{{ route('home') }}" method="GET" id="yearForm" class="flex items-center gap-2">
                     <select name="tahun" id="tahunSelect" onchange="this.form.submit()" 
                             class="px-4 py-2 bg-white border-2 border-slate-300 rounded-xl text-sm font-bold text-slate-800 shadow-sm focus:border-emerald-500 focus:outline-none">
-                        @foreach($availableYears as $yr)
-                            <option value="{{ $yr }}" {{ $yr == $selectedYear ? 'selected' : '' }}>
+                        @foreach($years as $yr)
+                            <option value="{{ $yr }}" {{ $yr == $year ? 'selected' : '' }}>
                                 Tahun {{ $yr }}
                             </option>
                         @endforeach
@@ -47,10 +45,8 @@
         </div>
     </section>
 
-    <!-- 4 Key Indicator Cards (Microsoft AI Economy Report Style) -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <!-- Rata-rata Nasional -->
         <div class="card-tactile p-5 bg-white flex flex-col justify-between">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Rata-Rata UMP Nasional</span>
@@ -60,19 +56,18 @@
             </div>
             <div>
                 <div class="text-2xl font-black text-slate-900 tracking-tight">
-                    Rp {{ number_format($nationalAverage, 0, ',', '.') }}
+                    Rp {{ number_format($avg, 0, ',', '.') }}
                 </div>
                 <div class="flex items-center gap-2 mt-2">
-                    <span class="badge-pill {{ $nationalGrowth >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800' }}">
-                        <i class="fa-solid {{ $nationalGrowth >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }} mr-1"></i>
-                        {{ $nationalGrowth >= 0 ? '+' : '' }}{{ $nationalGrowth }}% YoY
+                    <span class="badge-pill {{ $growth >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800' }}">
+                        <i class="fa-solid {{ $growth >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }} mr-1"></i>
+                        {{ $growth >= 0 ? '+' : '' }}{{ $growth }}% YoY
                     </span>
-                    <span class="text-[11px] text-slate-400 font-medium">vs {{ $selectedYear - 1 }}</span>
+                    <span class="text-[11px] text-slate-400 font-medium">vs {{ $year - 1 }}</span>
                 </div>
             </div>
         </div>
 
-        <!-- UMP Tertinggi -->
         <div class="card-tactile p-5 bg-white flex flex-col justify-between">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-400">UMP Tertinggi</span>
@@ -91,7 +86,6 @@
             </div>
         </div>
 
-        <!-- UMP Terendah -->
         <div class="card-tactile p-5 bg-white flex flex-col justify-between">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-400">UMP Terendah</span>
@@ -110,7 +104,6 @@
             </div>
         </div>
 
-        <!-- Sampel Pekerja Terkumpul -->
         <div class="card-tactile p-5 bg-white flex flex-col justify-between">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Rerata Upah Riil Pekerja</span>
@@ -120,25 +113,24 @@
             </div>
             <div>
                 <div class="text-2xl font-black text-sky-600 tracking-tight">
-                    {{ $overallWorkerAvg > 0 ? 'Rp ' . number_format($overallWorkerAvg, 0, ',', '.') : '-' }}
+                    {{ $workersAvg > 0 ? 'Rp ' . number_format($workersAvg, 0, ',', '.') : '-' }}
                 </div>
                 <div class="mt-2 text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span>Berdasarkan {{ $totalReportedWorkers }} laporan pekerja aktif</span>
+                    <span>Berdasarkan {{ $workersCount }} laporan pekerja aktif</span>
                 </div>
             </div>
         </div>
 
     </section>
 
-    <!-- SECTION: PETA INDONESIA INTERAKTIF (DASAR UTAMA) -->
     <section class="card-tactile p-6 bg-white space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
                 <div class="flex items-center gap-2">
                     <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                         <i class="fa-solid fa-map-location-dot text-emerald-600"></i>
-                        Peta Sebaran Upah Minimum Provinsi (UMP) {{ $selectedYear }}
+                        Peta Sebaran Upah Minimum Provinsi (UMP) {{ $year }}
                     </h2>
                     <span class="badge-pill bg-emerald-100 text-emerald-800 text-[10px]">Interaktif</span>
                 </div>
@@ -147,7 +139,6 @@
                 </p>
             </div>
 
-            <!-- Legenda Visual -->
             <div class="flex items-center gap-3 text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
                 <span class="font-bold text-slate-500">Tingkat UMP:</span>
                 <div class="flex items-center gap-1">
@@ -165,15 +156,12 @@
             </div>
         </div>
 
-        <!-- Peta Container & Detail Sidebar Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
             
-            <!-- Leaflet Map Container -->
             <div class="lg:col-span-2 rounded-2xl overflow-hidden border-2 border-slate-200 relative" style="height: 480px; z-index: 1;">
                 <div id="indonesiaMap" class="w-full h-full bg-slate-100"></div>
             </div>
 
-            <!-- Detail Provinsi Card On-Click -->
             <div id="provinceDetailCard" class="card-tactile p-5 bg-slate-50 border-2 border-slate-200 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-3">
@@ -187,7 +175,7 @@
 
                     <div class="mt-5 space-y-3 pt-3 border-t-2 border-slate-200">
                         <div class="bg-white p-3 rounded-xl border border-slate-200">
-                            <span class="text-[11px] font-bold uppercase text-slate-400">Nominal UMP (Tahun {{ $selectedYear }})</span>
+                            <span class="text-[11px] font-bold uppercase text-slate-400">Nominal UMP (Tahun {{ $year }})</span>
                             <div id="detailUmp" class="text-xl font-black text-emerald-600 mt-0.5">-</div>
                         </div>
 
@@ -214,10 +202,8 @@
         </div>
     </section>
 
-    <!-- SECTION: GRAFIK & ANALISIS (Inspired by Microsoft AI Economy Institute Report) -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        <!-- Chart 1: Tren Multi-Tahun UMP -->
         <div class="card-tactile p-6 bg-white space-y-4">
             <div class="flex items-center justify-between">
                 <div>
@@ -234,7 +220,6 @@
             </div>
         </div>
 
-        <!-- Chart 2: Top 5 vs Bottom 5 Provinsi -->
         <div class="card-tactile p-6 bg-white space-y-4">
             <div class="flex items-center justify-between">
                 <div>
@@ -253,8 +238,7 @@
 
     </section>
 
-    <!-- SECTION: BENCHMARK SEKTOR PEKERJAAN -->
-    @if($sectorStats->isNotEmpty())
+    @if($sectors->isNotEmpty())
     <section class="card-tactile p-6 bg-white space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -273,7 +257,7 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
-            @foreach($sectorStats as $sec)
+            @foreach($sectors as $sec)
                 <div class="bg-slate-50 border-2 border-slate-200/80 rounded-2xl p-4 flex flex-col justify-between hover:border-emerald-300 transition-all">
                     <div>
                         <div class="flex items-center justify-between text-xs mb-1">
@@ -294,24 +278,15 @@
     </section>
     @endif
 
-    <!-- SECTION: TABEL PERINGKAT LENGKAP 38 PROVINSI -->
-    <<section class="card-tactile p-6 bg-white space-y-4">
+    <section class="card-tactile p-6 bg-white space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
                 <h3 class="font-black text-slate-900 text-base flex items-center gap-2">
                     <i class="fa-solid fa-list-ol text-emerald-600"></i>
-                    Daftar Lengkap Peringkat UMP Seluruh Provinsi ({{ $selectedYear }})
+                    Daftar Lengkap Peringkat UMP Seluruh Provinsi ({{ $year }})
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Total {{ count($provinsiData) }} provinsi terdaftar dalam basis data resmi</p>
+                <p class="text-xs text-slate-500 mt-0.5">Total {{ count($provinces) }} provinsi terdaftar dalam basis data resmi</p>
             </div>
-            {{-- <div class="w-full sm:w-64">
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                    </span>
-                    <input type="text" id="tableSearch" placeholder="Cari nama provinsi..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-xs font-semibold focus:border-emerald-500 focus:outline-none">
-                </div>
-            </div> --}}
         </div>
 
         <div class="overflow-x-auto rounded-2xl">
@@ -327,7 +302,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                    @foreach($provinsiData as $idx => $p)
+                    @foreach($provinces as $idx => $p)
                         <tr class="hover:bg-slate-50/80 transition-colors">
                             <td class="py-3 px-4 text-center font-bold text-slate-400">{{ $idx + 1 }}</td>
                             <td class="py-3 px-4 font-bold text-slate-900">
@@ -351,7 +326,7 @@
                                 @endif
                             </td>
                             <td class="py-3 px-4 text-center">
-                                @if($p['nominal'] >= $nationalAverage)
+                                @if($p['nominal'] >= $avg)
                                     <span class="badge-pill bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px]">
                                         &ge; Rerata Nasional
                                     </span>
@@ -379,14 +354,12 @@
 
 @push('scripts')
 <script>
-    // Data passing from Blade
-    const provinsiList = @json($provinsiData);
-    const trendData = @json($historicalTrend);
-    const top5Data = @json($top5);
-    const bottom5Data = @json($bottom5);
-    const natAvg = {{ $nationalAverage }};
+    const provinces = @json($provinces);
+    const trendData = @json($trend);
+    const topData = @json($top);
+    const bottomData = @json($bottom);
+    const natAvg = {{ $avg }};
 
-    // 1. Initialize Leaflet Map
     const map = L.map('indonesiaMap', {
         center: [-2.548926, 118.0148634],
         zoom: 5,
@@ -395,7 +368,6 @@
         scrollWheelZoom: false
     });
 
-    // Carto Voyager Basemap with authorized API key
     L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=cb1_5fts_1_3064525766c151a00b1b7434', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         maxZoom: 19
@@ -403,15 +375,13 @@
 
     let markers = [];
 
-    // Helper: color by UMP nominal
     function getColor(nominal) {
-        if (nominal >= 4500000) return '#059669'; // Emerald
-        if (nominal >= 3000000) return '#0284c7'; // Sky/Blue
-        return '#f59e0b'; // Amber
+        if (nominal >= 4500000) return '#059669';
+        if (nominal >= 3000000) return '#0284c7';
+        return '#f59e0b';
     }
 
-    // Add Circle Markers for each province
-    provinsiList.forEach(p => {
+    provinces.forEach(p => {
         const color = getColor(p.nominal);
         const radius = Math.max(8, Math.min(22, (p.nominal / 300000)));
 
@@ -424,7 +394,6 @@
             fillOpacity: 0.85
         }).addTo(map);
 
-        // Tooltip
         circle.bindTooltip(`
             <div style="font-family:'Plus Jakarta Sans',sans-serif; padding:4px;">
                 <div style="font-weight:800; font-size:13px; color:#0f172a;">${p.nama}</div>
@@ -433,7 +402,6 @@
             </div>
         `, { sticky: true });
 
-        // On Click event
         circle.on('click', () => {
             selectProvince(p);
         });
@@ -452,7 +420,6 @@
         map.setView([p.lat, p.lng], 6, { animate: true });
     }
 
-    // Function called from Table row button
     window.focusProvince = function(lat, lng, nama, formatted, kode, growth, reported) {
         document.getElementById('detailKode').textContent = 'KODE: ' + kode;
         document.getElementById('detailNama').textContent = nama;
@@ -465,12 +432,10 @@
         window.scrollTo({ top: document.getElementById('indonesiaMap').offsetTop - 100, behavior: 'smooth' });
     };
 
-    // Auto-select first/highest province initially
-    if (provinsiList.length > 0) {
-        selectProvince(provinsiList[0]);
+    if (provinces.length > 0) {
+        selectProvince(provinces[0]);
     }
 
-    // 2. Trend Chart (Line)
     const ctxTrend = document.getElementById('trendChart').getContext('2d');
     new Chart(ctxTrend, {
         type: 'line',
@@ -520,8 +485,7 @@
         }
     });
 
-    // 3. Ranking Chart (Top 5 vs Bottom 5)
-    const combinedRanking = [...top5Data, ...bottom5Data];
+    const combinedRanking = [...topData, ...bottomData];
     const ctxRank = document.getElementById('rankingChart').getContext('2d');
     new Chart(ctxRank, {
         type: 'bar',
@@ -571,18 +535,17 @@
             pageLength: 10,
             order: [[0, 'asc']],
             language: {
-                        search: 'Cari Provinsi:',
-                        searchPlaceholder: 'Ketik nama provinsi...',
-                        info: 'Menampilkan _START_ - _END_ dari _TOTAL_ provinsi',
-                        infoEmpty: 'Tidak ada data provinsi',
-                        zeroRecords: 'Nama provinsi tidak ditemukan'
-                    },
+                search: 'Cari Provinsi:',
+                searchPlaceholder: 'Ketik nama provinsi...',
+                info: 'Menampilkan _START_ - _END_ dari _TOTAL_ provinsi',
+                infoEmpty: 'Tidak ada data provinsi',
+                zeroRecords: 'Nama provinsi tidak ditemukan'
+            },
             columnDefs: [
-                { targets: 5, orderable: false, searchable: false } // Kolom Aksi tidak perlu di-sort/search
+                { targets: 5, orderable: false, searchable: false }
             ]
         });
 
-        // Hubungkan input #tableSearch ke fungsi pencarian DataTables
         $('#tableSearch').on('keyup change', function () {
             provinsiTable.search(this.value).draw();
         });

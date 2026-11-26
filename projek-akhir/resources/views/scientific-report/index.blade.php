@@ -5,22 +5,20 @@
 @section('content')
 <div class="space-y-8">
 
-    <!-- Header Kelilmiahan / Academic Paper Header -->
     <section class="card-tactile p-6 sm:p-8 bg-white border-t-8 border-t-emerald-700 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-100 pb-4">
             <div class="flex items-center gap-2">
-                <span class="badge-pill bg-emerald-900 text-white font-mono text-[10px]">NW-REPORT/{{ $selectedYear }}/V.1</span>
-                <span class="badge-pill bg-slate-100 text-slate-700 text-[10px] font-mono">DOI: 10.5281/zenodo.nw{{ $selectedYear }}.01</span>
+                <span class="badge-pill bg-emerald-900 text-white font-mono text-[10px]">NW-REPORT/{{ $year }}/V.1</span>
+                <span class="badge-pill bg-slate-100 text-slate-700 text-[10px] font-mono">DOI: 10.5281/zenodo.nw{{ $year }}.01</span>
                 <span class="badge-pill bg-slate-100 text-slate-600 text-[10px]">Klasifikasi JEL: J31, J38, R23</span>
             </div>
 
-            <!-- Periode Selector -->
             <form action="{{ route('scientific-report.index') }}" method="GET" class="flex items-center gap-2">
                 <label for="tahunSelect" class="text-xs font-bold text-slate-500 uppercase">Edisi:</label>
                 <select name="tahun" id="tahunSelect" onchange="this.form.submit()" 
                         class="px-3 py-1.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600">
-                    @foreach($availableYears as $yr)
-                        <option value="{{ $yr }}" {{ $yr == $selectedYear ? 'selected' : '' }}>Edisi Riset {{ $yr }}</option>
+                    @foreach($years as $yr)
+                        <option value="{{ $yr }}" {{ $yr == $year ? 'selected' : '' }}>Edisi Riset {{ $yr }}</option>
                     @endforeach
                 </select>
             </form>
@@ -32,11 +30,10 @@
             </h1>
             <p class="text-xs font-medium text-slate-500 mt-2">
                 Diterbitkan oleh: <span class="font-bold text-slate-700">National Wage Policy & Labor Research Institute (NWPLRI)</span> &bull; 
-                Observasi: Data Resmi Kemenaker RI, BPS, dan Sensus Partisipatif Pekerja {{ $selectedYear }}
+                Observasi: Data Resmi Kemenaker RI, BPS, dan Sensus Partisipatif Pekerja {{ $year }}
             </p>
         </div>
 
-        <!-- Download Action Card with Guest Protection -->
         <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50/60 p-4 rounded-2xl border-2 border-emerald-200">
             <div>
                 <h4 class="font-black text-sm text-emerald-950 flex items-center gap-1.5">
@@ -49,10 +46,10 @@
 
             <div>
                 @auth
-                    <a href="{{ route('scientific-report.pdf', ['tahun' => $selectedYear]) }}" 
+                    <a href="{{ route('scientific-report.pdf', ['tahun' => $year]) }}" 
                        class="btn-tactile-primary px-5 py-2.5 text-xs inline-flex items-center gap-2 shadow-sm whitespace-nowrap">
                         <i class="fa-solid fa-download"></i>
-                        <span>Unduh PDF Ilmiah ({{ $selectedYear }})</span>
+                        <span>Unduh PDF Ilmiah ({{ $year }})</span>
                     </a>
                 @else
                     <div class="flex items-center gap-2">
@@ -68,7 +65,6 @@
         </div>
     </section>
 
-    <!-- SECTION: SITASI GENERATOR (APA 7, IEEE, HARVARD, BIBTEX, CHICAGO) -->
     <section class="card-tactile p-6 sm:p-8 bg-white space-y-4">
         <div class="flex items-center justify-between">
             <div>
@@ -85,7 +81,6 @@
             </div>
         </div>
 
-        <!-- Format Selector Tabs -->
         <div class="flex flex-wrap items-center gap-2 border-b-2 border-slate-100 pb-3">
             <button type="button" onclick="switchCitation('apa7')" id="tab-apa7" class="cite-tab px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white transition">
                 APA 7th Edition
@@ -104,7 +99,6 @@
             </button>
         </div>
 
-        <!-- Citation Display Box -->
         <div class="relative bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 sm:p-5">
             <pre id="citationText" class="text-xs font-mono text-slate-800 whitespace-pre-wrap leading-relaxed font-semibold"></pre>
 
@@ -118,25 +112,22 @@
         </div>
     </section>
 
-    <!-- SECTION: ABSTRAK AKADEMIK & METRIK STATISTIK -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <!-- Kolom Abstrak -->
         <div class="lg:col-span-2 card-tactile p-6 bg-white space-y-4">
             <h3 class="text-base font-black text-slate-900 border-b-2 border-slate-100 pb-2 flex items-center gap-2">
                 <i class="fa-solid fa-scroll text-slate-600"></i> Abstrak Akademik (Executive Abstract)
             </h3>
             
             <p class="text-xs text-slate-700 leading-relaxed font-serif text-justify">
-                <strong>Abstrak &mdash;</strong> Laporan ini menganalisis konfigurasi spasial dan disparitas Upah Minimum Provinsi (UMP) di 38 provinsi di Indonesia untuk tahun observasi {{ $selectedYear }}. Pendekatan metodologis memadukan telaah regulasi ketenagakerjaan makro dengan observasi empiris upah riil yang dikontribusikan oleh tenaga kerja aktif lintas sektor. Hasil analisis menunjukkan tingkat disparitas yang signifikan antara wilayah perkotaan metropolitan (puncak tertinggi di {{ $highest->provinsi->nama_provinsi ?? 'DKI Jakarta' }} sebesar Rp {{ number_format($highest->nominal ?? 0, 0, ',', '.') }}) dibandingkan kawasan berbasis manufaktur dan agraris (terendah di {{ $lowest->provinsi->nama_provinsi ?? '-' }} sebesar Rp {{ number_format($lowest->nominal ?? 0, 0, ',', '.') }}). Koefisien variasi sebesar {{ $coeffVariation }}% mengindikasikan persistensi ketimpangan upah antar-regional yang memerlukan kebijakan harmonisasi struktural produktivitas tenaga kerja.
+                <strong>Abstrak &mdash;</strong> Laporan ini menganalisis konfigurasi spasial dan disparitas Upah Minimum Provinsi (UMP) di 38 provinsi di Indonesia untuk tahun observasi {{ $year }}. Pendekatan metodologis memadukan telaah regulasi ketenagakerjaan makro dengan observasi empiris upah riil yang dikontribusikan oleh tenaga kerja aktif lintas sektor. Hasil analisis menunjukkan tingkat disparitas yang signifikan antara wilayah perkotaan metropolitan (puncak tertinggi di {{ $highest->provinsi->nama_provinsi ?? 'DKI Jakarta' }} sebesar Rp {{ number_format($highest->nominal ?? 0, 0, ',', '.') }}) dibandingkan kawasan berbasis manufaktur dan agraris (terendah di {{ $lowest->provinsi->nama_provinsi ?? '-' }} sebesar Rp {{ number_format($lowest->nominal ?? 0, 0, ',', '.') }}). Koefisien variasi sebesar {{ $cv }}% mengindikasikan persistensi ketimpangan upah antar-regional yang memerlukan kebijakan harmonisasi struktural produktivitas tenaga kerja.
             </p>
 
             <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1">
-                <div><strong class="text-slate-700">Kata Kunci:</strong> <span class="italic text-slate-600">Upah Minimum Provinsi, UMP {{ $selectedYear }}, Disparitas Regional, Produktivitas Tenaga Kerja, Kebijakan Upah Nasional, BPS.</span></div>
+                <div><strong class="text-slate-700">Kata Kunci:</strong> <span class="italic text-slate-600">Upah Minimum Provinsi, UMP {{ $year }}, Disparitas Regional, Produktivitas Tenaga Kerja, Kebijakan Upah Nasional, BPS.</span></div>
             </div>
         </div>
 
-        <!-- Kolom Metrik Statistik Ilmiah -->
         <div class="card-tactile p-6 bg-white space-y-4">
             <h3 class="text-base font-black text-slate-900 border-b-2 border-slate-100 pb-2 flex items-center gap-2">
                 <i class="fa-solid fa-square-root-variable text-emerald-600"></i> Statistik Deskriptif
@@ -145,7 +136,7 @@
             <div class="space-y-3">
                 <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <span class="text-[10px] font-bold uppercase text-slate-400">Mean (&mu; - Rerata UMP)</span>
-                    <div class="text-lg font-black text-slate-900 mt-0.5">Rp {{ number_format($avgUmp, 0, ',', '.') }}</div>
+                    <div class="text-lg font-black text-slate-900 mt-0.5">Rp {{ number_format($avg, 0, ',', '.') }}</div>
                 </div>
 
                 <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
@@ -155,7 +146,7 @@
 
                 <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <span class="text-[10px] font-bold uppercase text-slate-400">Koefisien Variasi (CV)</span>
-                    <div class="text-lg font-black text-emerald-700 mt-0.5">{{ $coeffVariation }}%</div>
+                    <div class="text-lg font-black text-emerald-700 mt-0.5">{{ $cv }}%</div>
                     <p class="text-[10px] text-slate-400 mt-0.5">Indeks dispersi ketimpangan antar provinsi</p>
                 </div>
             </div>
@@ -163,13 +154,12 @@
 
     </section>
 
-    <!-- SECTION: TABEL OBSERVASI ILMIAH 38 PROVINSI -->
     <section class="card-tactile p-6 bg-white space-y-4">
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="font-black text-slate-900 text-base flex items-center gap-2">
                     <i class="fa-solid fa-table text-emerald-600"></i>
-                    Matriks Data Observasi UMP Seluruh Provinsi (Tahun {{ $selectedYear }})
+                    Matriks Data Observasi UMP Seluruh Provinsi (Tahun {{ $year }})
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">Daftar lengkap urutan nominal dan penyimpangan dari nilai mean nasional</p>
             </div>
@@ -191,8 +181,8 @@
                 <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
                     @foreach($umps as $idx => $ump)
                         @php
-                            $delta = $ump->nominal - $avgUmp;
-                            $pctDelta = $avgUmp > 0 ? round(($delta / $avgUmp) * 100, 1) : 0;
+                            $delta = $ump->nominal - $avg;
+                            $pctDelta = $avg > 0 ? round(($delta / $avg) * 100, 1) : 0;
                         @endphp
                         <tr class="hover:bg-slate-50/80 transition-colors">
                             <td class="py-2.5 px-4 text-center font-bold text-slate-400">{{ $loop->iteration }}</td>
@@ -205,9 +195,9 @@
                                 {{ $delta >= 0 ? '+' : '' }}Rp {{ number_format($delta, 0, ',', '.') }} ({{ $pctDelta }}%)
                             </td>
                             <td class="py-2.5 px-4 text-center">
-                                @if($ump->nominal > $avgUmp + ($stdDev * 0.5))
+                                @if($ump->nominal > $avg + ($stdDev * 0.5))
                                     <span class="badge-pill bg-emerald-100 text-emerald-800 text-[10px]">Tinggi</span>
-                                @elseif($ump->nominal < $avgUmp - ($stdDev * 0.5))
+                                @elseif($ump->nominal < $avg - ($stdDev * 0.5))
                                     <span class="badge-pill bg-amber-100 text-amber-800 text-[10px]">Rendah</span>
                                 @else
                                     <span class="badge-pill bg-slate-100 text-slate-700 text-[10px]">Moderat</span>
@@ -224,7 +214,7 @@
 
 @push('scripts')
 <script>
-    const year = {{ $selectedYear }};
+    const year = {{ $year }};
 
     const citations = {
         apa7: `National Wage Institute. (${year}). Laporan Komprehensif Upah Minimum Provinsi (UMP) dan Dinamika Kompensasi Tenaga Kerja Indonesia. National Wage Policy & Labor Research Institute. https://doi.org/10.5281/zenodo.nw${year}.01`,
@@ -274,7 +264,6 @@
         });
     }
 
-    // Initialize
     switchCitation('apa7');
 </script>
 @endpush

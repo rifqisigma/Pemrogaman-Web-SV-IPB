@@ -7,51 +7,45 @@ use App\Models\Ump;
 use App\Models\WageLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
-        $provinsis = Provinsi::orderBy('nama_provinsi')->get();
-
-        // User's personal logs
-        $myLogs = WageLog::where('user_id', $user->id)
+        $provinces = Provinsi::orderBy('nama_provinsi')->get();
+        $logs = WageLog::where('user_id', $user->id)
             ->with('provinsi')
-            ->orderBy('created_at', 'desc')
+            ->latest()
             ->get();
 
-        // Regional Dashboard Data based on user's province
-        $userProvinsi = $user->provinsi;
-        $latestUmp = null;
-        $umpDifference = null;
-        $umpPercentDiff = null;
-        $provincialHistorical = collect();
-        $sectorPeersAvg = null;
+        $prov = $user->provinsi;
+        $ump = null;
+        $diff = null;
+        $diffPct = null;
+        $history = collect();
+        $peerAvg = null;
 
-        if ($userProvinsi) {
-            $latestYear = Ump::where('provinsi_id', $userProvinsi->id)->max('tahun') ?? 2026;
-            $latestUmp = Ump::where('provinsi_id', $userProvinsi->id)
-                ->where('tahun', $latestYear)
+        if ($prov) {
+            $year = Ump::where('provinsi_id', $prov->id)->max('tahun') ?? 2026;
+            $ump = Ump::where('provinsi_id', $prov->id)
+                ->where('tahun', $year)
                 ->first();
 
-            if ($latestUmp && $user->gaji_pokok) {
-                $umpDifference = $user->gaji_pokok - $latestUmp->nominal;
-                $umpPercentDiff = round(($umpDifference / $latestUmp->nominal) * 100, 1);
+            if ($ump && $user->gaji_pokok) {
+                $diff = $user->gaji_pokok - $ump->nominal;
+                $diffPct = round(($diff / $ump->nominal) * 100, 1);
             }
 
-            // Historical UMP for this province
-            $provincialHistorical = Ump::where('provinsi_id', $userProvinsi->id)
+            $history = Ump::where('provinsi_id', $prov->id)
                 ->orderBy('tahun', 'desc')
                 ->limit(8)
                 ->get()
                 ->sortBy('tahun')
                 ->values();
 
-            // Peer average in same province or same sector
             if ($user->bidang_kerja) {
-                $sectorPeersAvg = WageLog::where('provinsi_id', $userProvinsi->id)
+                $peerAvg = WageLog::where('provinsi_id', $prov->id)
                     ->where('bidang_kerja', $user->bidang_kerja)
                     ->avg('gaji_nominal');
             }
@@ -59,14 +53,14 @@ class UserController extends Controller
 
         return view('user.index', compact(
             'user',
-            'provinsis',
-            'myLogs',
-            'userProvinsi',
-            'latestUmp',
-            'umpDifference',
-            'umpPercentDiff',
-            'provincialHistorical',
-            'sectorPeersAvg'
+            'provinces',
+            'logs',
+            'prov',
+            'ump',
+            'diff',
+            'diffPct',
+            'history',
+            'peerAvg'
         ));
     }
 
@@ -74,7 +68,7 @@ class UserController extends Controller
     {
         $user = Auth::user();
 
-        $validated = $request->validate([
+        $valid = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'provinsi_id' => ['required', 'exists:provinsis,id'],
             'bidang_kerja' => ['required', 'string', 'max:100'],
@@ -94,28 +88,26 @@ class UserController extends Controller
             'alasan_pembaruan.min' => 'Alasan pembaruan minimal 5 karakter.',
         ]);
 
-        $gajiSebelumnya = $user->gaji_pokok;
+        $prevGaji = $user->gaji_pokok;
 
-        // 1. Update User Profile
         $user->update([
-            'name' => $validated['name'],
-            'provinsi_id' => $validated['provinsi_id'],
-            'bidang_kerja' => $validated['bidang_kerja'],
-            'jabatan' => $validated['jabatan'],
-            'status_pekerjaan' => $validated['status_pekerjaan'],
-            'gaji_pokok' => $validated['gaji_pokok'],
+            'name' => $valid['name'],
+            'provinsi_id' => $valid['provinsi_id'],
+            'bidang_kerja' => $valid['bidang_kerja'],
+            'jabatan' => $valid['jabatan'],
+            'status_pekerjaan' => $valid['status_pekerjaan'],
+            'gaji_pokok' => $valid['gaji_pokok'],
         ]);
 
-        // 2. Insert into WageLog (Audit history)
         WageLog::create([
             'user_id' => $user->id,
-            'provinsi_id' => $validated['provinsi_id'],
-            'bidang_kerja' => $validated['bidang_kerja'],
-            'jabatan' => $validated['jabatan'],
-            'status_pekerjaan' => $validated['status_pekerjaan'],
-            'gaji_nominal' => $validated['gaji_pokok'],
-            'gaji_sebelumnya' => $gajiSebelumnya,
-            'alasan_pembaruan' => $validated['alasan_pembaruan'],
+            'provinsi_id' => $valid['provinsi_id'],
+            'bidang_kerja' => $valid['bidang_kerja'],
+            'jabatan' => $valid['jabatan'],
+            'status_pekerjaan' => $valid['status_pekerjaan'],
+            'gaji_nominal' => $valid['gaji_pokok'],
+            'gaji_sebelumnya' => $prevGaji,
+            'alasan_pembaruan' => $valid['alasan_pembaruan'],
             'tahun' => (int) date('Y'),
             'ip_address' => $request->ip(),
         ]);
