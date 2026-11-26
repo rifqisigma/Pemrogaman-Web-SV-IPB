@@ -11,18 +11,13 @@ use Illuminate\Support\Facades\DB;
 
 class ServiceApiController extends Controller
 {
-    /**
-     * Handle incoming request for /service-api.
-     * If user visits in browser (expects HTML), render interactive documentation & tester.
-     * If user requests JSON (API client, curl, ?format=json), return flexible filtered JSON.
-     */
+
     public function index(Request $request)
     {
         if ($request->wantsJson() || $request->is('api/*') || $request->query('format') === 'json' || $request->ajax()) {
             return $this->getFlexibleData($request);
         }
 
-        // Available metadata for documentation view
         $provinsis = Provinsi::orderBy('nama_provinsi')->get(['id', 'kode_provinsi', 'nama_provinsi']);
         $years = Ump::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
         $sectors = WageLog::select('bidang_kerja')->distinct()->orderBy('bidang_kerja')->pluck('bidang_kerja');
@@ -30,9 +25,6 @@ class ServiceApiController extends Controller
         return view('service-api.index', compact('provinsis', 'years', 'sectors'));
     }
 
-    /**
-     * Flexible GET API endpoint providing filtered wage data.
-     */
     public function getFlexibleData(Request $request): JsonResponse
     {
         $type = strtolower((string) $request->input('type', 'ump'));
@@ -65,7 +57,6 @@ class ServiceApiController extends Controller
             'page' => $page,
         ]);
 
-        // Branch 1: UMP Official Minimum Wage
         if ($type === 'ump') {
             $query = Ump::with('provinsi');
 
@@ -94,7 +85,6 @@ class ServiceApiController extends Controller
                 $query->where('nominal', '<=', $maxNominal);
             }
 
-            // Sorting
             match ($sort) {
                 'nominal_desc' => $query->orderBy('nominal', 'desc'),
                 'nominal_asc' => $query->orderBy('nominal', 'asc'),
@@ -136,7 +126,6 @@ class ServiceApiController extends Controller
             ]);
         }
 
-        // Branch 2: Worker / Wage Logs (Data Upah Pekerja Riil)
         if ($type === 'pekerja' || $type === 'worker') {
             $query = WageLog::with('provinsi');
 
@@ -213,7 +202,6 @@ class ServiceApiController extends Controller
             ]);
         }
 
-        // Branch 3: Combined / Summary
         $targetYear = $tahun ?? Ump::max('tahun') ?? 2026;
         $umpStats = Ump::where('tahun', $targetYear)->select(
             DB::raw('COUNT(*) as total_provinsi'),

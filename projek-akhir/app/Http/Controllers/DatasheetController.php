@@ -51,7 +51,6 @@ class DatasheetController extends Controller
 
     public function export(Request $request)
     {
-        // Enforce role filtration: guests cannot download
         if (!Auth::check()) {
             return redirect()->route('login')
                 ->with('warning', 'Akses Terbatas: Silakan masuk atau daftar terlebih dahulu untuk mengunduh file datasheet Excel/CSV.');

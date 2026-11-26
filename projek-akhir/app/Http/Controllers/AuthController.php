@@ -108,7 +108,6 @@ class AuthController extends Controller
             'gaji_pokok' => $validated['gaji_pokok'] ?? null,
         ]);
 
-        // If salary provided, create initial wage log
         if (!empty($validated['gaji_pokok']) && $validated['gaji_pokok'] > 0 && !empty($validated['provinsi_id'])) {
             WageLog::create([
                 'user_id' => $user->id,
